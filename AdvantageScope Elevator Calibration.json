@@ -1,0 +1,103 @@
+{
+  "hubs": [
+    {
+      "x": -8,
+      "y": -8,
+      "width": 1552,
+      "height": 840,
+      "state": {
+        "sidebar": {
+          "width": 437,
+          "expanded": [
+            "/AdvantageKit/Elevator Test",
+            "/AdvantageKit/Elevator Test/Data",
+            "/AdvantageKit/RealOutputs/Elevator/Profile",
+            "/Tuning/Elevator",
+            "/Tuning",
+            "/AdvantageKit/NetworkInputs/Tuning",
+            "/AdvantageKit/NetworkInputs/Tuning/Elevator",
+            "/AdvantageKit",
+            "/AdvantageKit/Elevator/Data",
+            "/AdvantageKit/RealOutputs",
+            "/AdvantageKit/Extender/Pivot",
+            "/AdvantageKit/Extender/Pivot/Data",
+            "/AdvantageKit/Extender/Pivot/Data/position",
+            "/AdvantageKit/RealOutputs/Extender/MeasuredAngle",
+            "/AdvantageKit/RealOutputs/Elevator",
+            "/AdvantageKit/Elevator"
+          ]
+        },
+        "tabs": {
+          "selected": 1,
+          "tabs": [
+            {
+              "type": 0,
+              "title": "",
+              "controller": null,
+              "controllerUUID": "k3gmur4a1ft4ktjd70x3yqmy6hfs6h5h",
+              "renderer": "#/",
+              "controlsHeight": 0
+            },
+            {
+              "type": 1,
+              "title": "Velocity Tuning",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Elevator/Profile/GoalVelocityMeterPerSec",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Elevator/Profile/SetpointVelocityMeterPerSec",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Elevator/MeasuredVelocityMeterPerSec",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "po4crlx5egnvp74dsg77bulwcr5peo8i",
+              "renderer": null,
+              "controlsHeight": 200
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "satellites": [],
+  "version": "4.1.0"
+}
