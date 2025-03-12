@@ -8,9 +8,11 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.superstructure.SuperstructureConstants.ElevatorConstants;
 import frc.robot.subsystems.superstructure.beak.Beak;
+import frc.robot.subsystems.superstructure.beak.Beak.RollerGoal;
 import frc.robot.subsystems.superstructure.elevator.Elevator;
 import frc.robot.subsystems.superstructure.extender.Extender;
-import frc.robot.subsystems.superstructure.extender.Extender.RollerGoal;
+import frc.robot.subsystems.superstructure.extender.Extender.GripperGoal;
+import lombok.Setter;
 
 public class Superstructure extends SubsystemBase {
 
@@ -41,7 +43,7 @@ public class Superstructure extends SubsystemBase {
   private SuperstructureState next = null;
   private SuperstructureState goal = SuperstructureState.START;
 
-  private boolean shouldExtend = false;
+  @Setter private boolean shouldExtend = false;
 
   public Superstructure(Elevator elevator, Extender extender, Beak beak) {
     this.elevator = elevator;
@@ -75,14 +77,6 @@ public class Superstructure extends SubsystemBase {
   }
 
   // Extender Methods
-  public void runExtenderPivotOpenLoopVolt(double volt) {
-    extender.runPivotVolts(volt);
-  }
-
-  public void runExtenderRollerVolts(double volt) {
-    extender.runRollerVolts(volt);
-  }
-
   public void sendExtenderHome() {
     extender.setPivotGoal(() -> Rotation2d.fromDegrees(90.0));
   }
@@ -95,37 +89,48 @@ public class Superstructure extends SubsystemBase {
     return extender.homingSequence();
   }
 
-  public void gripAlgae() {
-    extender.setRollerGoal(RollerGoal.GRIP);
+  public void startManipulatingAlgae() {
+    extender.setShouldManipulateAlgae(true);
   }
 
-  public void spitAlgae() {
-    extender.setRollerGoal(RollerGoal.EJECT);
+  public void stopManipulatingAlgae() {
+    extender.setShouldManipulateAlgae(false);
   }
 
-  public void idleAlgae() {
-    extender.setRollerGoal(RollerGoal.IDLE);
+  public void ejectAlgae() {
+    extender.setGripperGoal(GripperGoal.EJECT);
   }
+  // public void ejectAlgae() {
+  //   extender.setGripperGoal(state == SuperstructureState.NET ? GripperGoal.NET_EJECT :
+  // GripperGoal.EJECT);
+  // }
 
   // Beak Methods
-  public void runBeakOpenLoopVolt(double volt) {
-    beak.runVolts(volt);
+  public void startManipulatingCoral() {
+    beak.setShouldManipulateCoral(true);
   }
 
-  public void runBeakIntakeOpenLoopVolt(double volt) {
-    beak.runBeakIntakeOpenLoopVolt(volt);
+  public void stopManipulatingCoral() {
+    beak.setShouldManipulateCoral(false);
   }
 
-  public void gripCoral() {
-    beak.setRollerGoal(frc.robot.subsystems.superstructure.beak.Beak.RollerGoal.GRIP);
+  public void ejectCoral() {
+    beak.setRollerGoal(RollerGoal.EJECT);
+  }
+  // public void ejectCoral() {
+  //   beak.setRollerGoal(state == SuperstructureState.L1_CORAL ? RollerGoal.L1_EJECT :
+  // RollerGoal.EJECT);
+  // }
+
+  // Superstructure Methods
+  public void startManipulatingGamePieces() {
+    startManipulatingAlgae();
+    startManipulatingCoral();
   }
 
-  public void spitCoral() {
-    beak.setRollerGoal(frc.robot.subsystems.superstructure.beak.Beak.RollerGoal.EJECT);
-  }
-
-  public void idleCoral() {
-    beak.setRollerGoal(frc.robot.subsystems.superstructure.beak.Beak.RollerGoal.IDLE);
+  public void stopManipulatingGamePieces() {
+    stopManipulatingAlgae();
+    stopManipulatingCoral();
   }
 
   public void calculateState() {
@@ -145,7 +150,9 @@ public class Superstructure extends SubsystemBase {
         /* -------------------------------------STOW---------------------------------------- */
       case STOW:
         elevator.setGoal(() -> STOW.getHEIGHT());
-        beak.setGoal(() -> STOW.getBeakAngle());
+        beak.setGoal(
+            () -> STOW.getBeakAngle()); // Change this so beak has the stowed angle and the extended
+        // angle
         if (shouldExtend) {
           extender.setPivotGoal(() -> STOW.getEXT_ANGLE());
         }

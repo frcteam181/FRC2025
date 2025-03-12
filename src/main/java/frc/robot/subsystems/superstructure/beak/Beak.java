@@ -30,50 +30,52 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Beak {
-  public static final Rotation2d minAngle = new Rotation2d(0.0);
-  public static final Rotation2d maxAngle = new Rotation2d(0.0);
+  public static final Rotation2d minPivotAngle = new Rotation2d(0.0);
+  public static final Rotation2d maxPivotAngle = new Rotation2d(0.0);
 
-  // Tunable numbers
-  private static final LoggedTunableNumber kP = new LoggedTunableNumber("Beak/kP");
-  private static final LoggedTunableNumber kD = new LoggedTunableNumber("Beak/kD");
-  private static final LoggedTunableNumber kS = new LoggedTunableNumber("Beak/kS");
-  private static final LoggedTunableNumber kG = new LoggedTunableNumber("Beak/kG");
-  private static final LoggedTunableNumber maxVelocityDegPerSec =
-      new LoggedTunableNumber("Beak/MaxVelocityDegreesPerSec", 0.0);
-  private static final LoggedTunableNumber maxAccelerationDegPerSec2 =
-      new LoggedTunableNumber("Beak/MaxAccelerationDegreesPerSec2", 0.0);
-  private static final LoggedTunableNumber coralMaxVelocityDegPerSec =
-      new LoggedTunableNumber("Beak/CoralMaxVelocityDegreesPerSec", 0.0);
-  private static final LoggedTunableNumber coralMaxAccelerationDegPerSec2 =
-      new LoggedTunableNumber("Beak/CoralMaxAccelerationDegreesPerSec2", 0.0);
-  private static final LoggedTunableNumber staticCharacterizationVelocityThresh =
-      new LoggedTunableNumber("Beak/StaticCharacterizationVelocityThresh", 0.0);
-  private static final LoggedTunableNumber staticCharacterizationRampRate =
-      new LoggedTunableNumber("Beak/StaticCharacterizationRampRate", 0.0);
-  private static final LoggedTunableNumber coralVelocityThresh =
-      new LoggedTunableNumber("Beak/CoralVelocityThreshold", 0.0);
-  public static final LoggedTunableNumber rollerHoldVolts =
-      new LoggedTunableNumber("Beak/RollerHoldVolts", 0.0);
-  public static final LoggedTunableNumber rollerIntakeVolts =
-      new LoggedTunableNumber("Beak/RollerIntakeVolts", 0.0);
-  public static final LoggedTunableNumber rollerEjectVolts =
-      new LoggedTunableNumber("Beak/RollerEjectVolts", 0.0);
-  public static final LoggedTunableNumber rollerL1EjectVolts =
-      new LoggedTunableNumber("Beak/RollerL1EjectVolts", 0.0);
-  public static final LoggedTunableNumber rollerCurrentLimit =
-      new LoggedTunableNumber("Beak/RollerCurrentLimit", 0.0);
-  public static final LoggedTunableNumber tolerance =
+  // Pivot Tuner
+  private static final LoggedTunableNumber kP = new LoggedTunableNumber("Beak/Pivot/kP");
+  private static final LoggedTunableNumber kD = new LoggedTunableNumber("Beak/Pivot/kD");
+  private static final LoggedTunableNumber kS = new LoggedTunableNumber("Beak/Pivot/kS");
+  private static final LoggedTunableNumber kG = new LoggedTunableNumber("Beak/Pivot/kG");
+  private static final LoggedTunableNumber maxPivotVelocityDegPerSec =
+      new LoggedTunableNumber("Beak/Pivot/MaxVelocityDegreesPerSec", 0.0);
+  private static final LoggedTunableNumber maxPivotAccelerationDegPerSec2 =
+      new LoggedTunableNumber("Beak/Pivot/MaxAccelerationDegreesPerSec2", 0.0);
+  private static final LoggedTunableNumber coralMaxPivotVelocityDegPerSec =
+      new LoggedTunableNumber("Beak/Pivot/CoralMaxVelocityDegreesPerSec", 0.0);
+  private static final LoggedTunableNumber coralMaxPivotAccelerationDegPerSec2 =
+      new LoggedTunableNumber("Beak/Pivot/CoralMaxAccelerationDegreesPerSec2", 0.0);
+  public static final LoggedTunableNumber pivotTolerance =
       new LoggedTunableNumber("Beak/Tolerance", 0.0);
-  public static final LoggedTunableNumber intakeReverseVolts =
-      new LoggedTunableNumber("Beak/IntakeReverseVolts", 0.0);
-  public static final LoggedTunableNumber intakeReverseTime =
-      new LoggedTunableNumber("Beak/IntakeReverseTime", 0.0);
+
+  // Characterization Tuner
+  private static final LoggedTunableNumber staticPivotCharacterizationVelocityThresh =
+      new LoggedTunableNumber("Beak/Characterization/StaticVelocityThresh", 0.0);
+  private static final LoggedTunableNumber staticPivotCharacterizationRampRate =
+      new LoggedTunableNumber("Beak/Characterization/StaticRampRate", 0.0);
+
+  // Roller Tuner
+  private static final LoggedTunableNumber coralVelocityThresh =
+      new LoggedTunableNumber("Beak/Roller/CoralVelocityThreshold", 0.0);
+  public static final LoggedTunableNumber rollerHoldVolts =
+      new LoggedTunableNumber("Beak/Roller/HoldVolts", 0.0);
+  public static final LoggedTunableNumber rollerIntakeVolts =
+      new LoggedTunableNumber("Beak/Roller/IntakeVolts", 0.0);
+  public static final LoggedTunableNumber rollerEjectVolts =
+      new LoggedTunableNumber("Beak/Roller/EjectVolts", 0.0);
+  public static final LoggedTunableNumber rollerL1EjectVolts =
+      new LoggedTunableNumber("Beak/Roller/L1EjectVolts", 0.0);
+  public static final LoggedTunableNumber rollerCurrentLimit =
+      new LoggedTunableNumber("Beak/Roller/CurrentLimit", 0.0);
+
+  // Homing Tuner
   public static final LoggedTunableNumber homingTimeSecs =
-      new LoggedTunableNumber("Beak/HomingTimeSecs", 0.0);
+      new LoggedTunableNumber("Beak/Homing/TimeSecs", 0.0);
   public static final LoggedTunableNumber homingVolts =
-      new LoggedTunableNumber("Beak/HomingVolts", 0.0);
+      new LoggedTunableNumber("Beak/Homing/Volts", 0.0);
   public static final LoggedTunableNumber homingVelocityThresh =
-      new LoggedTunableNumber("Beak/HomingVelocityThreshold", 0.0);
+      new LoggedTunableNumber("Beak/Homing/VelocityThreshold", 0.0);
 
   static {
     switch (Constants.getRobot()) {
@@ -105,32 +107,34 @@ public class Beak {
   private final RollerSystemIO rollerIO;
   private final RollerSystemIOInputsAutoLogged rollerInputs = new RollerSystemIOInputsAutoLogged();
 
-  @AutoLogOutput(key = "Beak/BrakeModeEnabled")
-  private boolean brakeModeEnabled = true;
+  @AutoLogOutput(key = "Beak/Pivot/BrakeModeEnabled")
+  private boolean pivotBrakeModeEnabled = true;
+
+  @AutoLogOutput(key = "Beak/Roller/BrakeModeEnabled")
+  private boolean rollerBrakeModeEnabled = true;
 
   // Overrides
   private BooleanSupplier coastOverride = () -> false;
   private BooleanSupplier disableOverride = () -> false;
   private BooleanSupplier disableGamePieceDetectionOverride = () -> false;
 
-  private TrapezoidProfile profile;
+  private TrapezoidProfile pivotProfile;
   private TrapezoidProfile coralProfile;
-  @Getter private State setpoint = new State();
-  private DoubleSupplier goal = () -> 0.0;
+  @Getter private State pivotSetpoint = new State();
+  private DoubleSupplier pivotGoal = () -> 0.0;
   private boolean stopProfile = false;
   @Getter private boolean shouldEStop = false;
   @Getter private boolean isEStopped = false;
   @Getter private boolean isIntaking = false;
-  private final Timer intakingReverseTimer = new Timer();
 
-  @AutoLogOutput(key = "Beak/Profile/AtGoal")
-  private boolean atGoal = false;
+  @AutoLogOutput(key = "Beak/Pivot/Profile/AtGoal")
+  private boolean pivotAtGoal = false;
 
   @Setter private double rollerVolts = 0.0;
   @AutoLogOutput @Setter private RollerGoal rollerGoal = RollerGoal.IDLE;
 
   @Setter private boolean hasCoral = false;
-  @Getter private boolean doNotStopIntaking = false;
+  @Setter private boolean shouldManipulateCoral = false;
 
   private static final double coralDebounceTime = 0.5;
   private Debouncer coralDebouncer = new Debouncer(coralDebounceTime, DebounceType.kRising);
@@ -142,30 +146,25 @@ public class Beak {
   // Disconnected Alerts
   private final Alert pivotMotorDisconnectedAlert =
       new Alert("Beak Pivot Motor Disconnected!", Alert.AlertType.kWarning);
-  private final Alert pivotEncoderDisconnectedAlert =
-      new Alert("Beak Pivot Encoder Disconnected!", Alert.AlertType.kWarning);
   private final Alert rollerMotorDisconnectedAlert =
       new Alert("Beak Roller Motor Disconnected!", Alert.AlertType.kWarning);
-
-  private boolean lastCoralButtonPressed = false;
 
   public Beak(BeakIO beakIO, RollerSystemIO rollerIO) {
     this.beakIO = beakIO;
     this.rollerIO = rollerIO;
 
-    profile =
+    pivotProfile =
         new TrapezoidProfile(
             new TrapezoidProfile.Constraints(
-                Units.degreesToRadians(maxVelocityDegPerSec.get()),
-                Units.degreesToRadians(maxAccelerationDegPerSec2.get())));
-    intakingReverseTimer.start();
+                Units.degreesToRadians(maxPivotVelocityDegPerSec.get()),
+                Units.degreesToRadians(maxPivotAccelerationDegPerSec2.get())));
   }
 
   public void periodic() {
     beakIO.updateInputs(beakInputs);
-    Logger.processInputs("Beak/Pivot", beakInputs);
+    Logger.processInputs("Beak/PivotHardwareReadouts", beakInputs);
     rollerIO.updateInputs(rollerInputs);
-    Logger.processInputs("Beak/Roller", rollerInputs);
+    Logger.processInputs("Beak/RollerHardwareReadOuts", rollerInputs);
 
     pivotMotorDisconnectedAlert.set(
         !beakInputs.data.motorConnected()
@@ -180,28 +179,29 @@ public class Beak {
     if (kP.hasChanged(hashCode()) || kD.hasChanged(hashCode())) {
       beakIO.setPID(kP.get(), 0.0, kD.get());
     }
-    if (maxVelocityDegPerSec.hasChanged(hashCode())
-        || maxAccelerationDegPerSec2.hasChanged(hashCode())) {
-      profile =
+    if (maxPivotVelocityDegPerSec.hasChanged(hashCode())
+        || maxPivotAccelerationDegPerSec2.hasChanged(hashCode())) {
+      pivotProfile =
           new TrapezoidProfile(
               new TrapezoidProfile.Constraints(
-                  Units.degreesToRadians(maxVelocityDegPerSec.get()),
-                  Units.degreesToRadians(maxAccelerationDegPerSec2.get())));
+                  Units.degreesToRadians(maxPivotVelocityDegPerSec.get()),
+                  Units.degreesToRadians(maxPivotAccelerationDegPerSec2.get())));
     }
-    if (coralMaxVelocityDegPerSec.hasChanged(hashCode())
-        || coralMaxAccelerationDegPerSec2.hasChanged(hashCode())) {
+    if (coralMaxPivotVelocityDegPerSec.hasChanged(hashCode())
+        || coralMaxPivotAccelerationDegPerSec2.hasChanged(hashCode())) {
       coralProfile =
           new TrapezoidProfile(
               new TrapezoidProfile.Constraints(
-                  Units.degreesToRadians(coralMaxVelocityDegPerSec.get()),
-                  Units.degreesToRadians(coralMaxAccelerationDegPerSec2.get())));
+                  Units.degreesToRadians(coralMaxPivotVelocityDegPerSec.get()),
+                  Units.degreesToRadians(coralMaxPivotAccelerationDegPerSec2.get())));
     }
     if (rollerCurrentLimit.hasChanged(hashCode())) {
       rollerIO.setCurrentLimit(rollerCurrentLimit.get());
     }
 
     // Set coast mode
-    setBrakeMode(!coastOverride.getAsBoolean());
+    setPivotBrakeMode(!coastOverride.getAsBoolean());
+    setRollerBrakeMode(!coastOverride.getAsBoolean());
 
     // Run Profile
     final boolean shouldRunProfile =
@@ -210,64 +210,82 @@ public class Beak {
             && !disableOverride.getAsBoolean()
             && !isEStopped
             && DriverStation.isEnabled();
-    Logger.recordOutput("Beak/RunningProfile", shouldRunProfile);
+    Logger.recordOutput("Beak/Pivot/RunningProfile", shouldRunProfile);
 
     // Check if out of tolerance
     boolean outOfTolerance =
-        Math.abs(getPivotAngle().getRadians() - setpoint.position) > tolerance.get();
-    shouldEStop = toleranceDebouncer.calculate(outOfTolerance && shouldRunProfile);
+        Math.abs(getPivotAngle().getRadians() - pivotSetpoint.position) > pivotTolerance.get();
+
+    Logger.recordOutput("Beak/Pivot/OutOfTolerance", pivotTolerance.get());
+
+    shouldEStop = false; // toleranceDebouncer.calculate(outOfTolerance && shouldRunProfile);
     if (shouldRunProfile) {
       // Clamp goal
-      var goalState =
+      var pivotGoalState =
           new State(
-              MathUtil.clamp(goal.getAsDouble(), minAngle.getRadians(), maxAngle.getRadians()),
+              MathUtil.clamp(
+                  pivotGoal.getAsDouble(), minPivotAngle.getRadians(), maxPivotAngle.getRadians()),
               0.0);
-      setpoint =
-          (hasCoral() ? coralProfile : profile)
-              .calculate(Constants.loopPeriodSecs, setpoint, goalState);
+      pivotSetpoint =
+          (hasCoral() ? coralProfile : pivotProfile)
+              .calculate(Constants.loopPeriodSecs, pivotSetpoint, pivotGoalState);
       beakIO.runPosition(
           Rotation2d.fromRadians(
-              setpoint.position - maxAngle.getRadians() + homingOffset.getRadians()),
-          kS.get() * Math.signum(setpoint.velocity) // Magnitude irrelevant
+              pivotSetpoint.position - maxPivotAngle.getRadians() + homingOffset.getRadians()),
+          kS.get() * Math.signum(pivotSetpoint.velocity) // Magnitude irrelevant
               + kG.get() * getPivotAngle().getCos());
       // Check at goal
-      atGoal =
-          EqualsUtil.epsilonEquals(setpoint.position, goalState.position)
-              && EqualsUtil.epsilonEquals(setpoint.velocity, 0.0);
+      pivotAtGoal =
+          EqualsUtil.epsilonEquals(pivotSetpoint.position, pivotGoalState.position)
+              && EqualsUtil.epsilonEquals(pivotSetpoint.velocity, 0.0);
 
       // Log State
-      Logger.recordOutput("Beak/Profile/SetpointAngle", setpoint.position);
-      Logger.recordOutput("Beak/Profile/SetpointVelocity", setpoint.velocity);
-      Logger.recordOutput("Beak/Profile/GoalAngleRad", goalState.position);
+      Logger.recordOutput("Beak/Pivot/Profile/SetpointAngle", pivotSetpoint.position);
+      Logger.recordOutput("Beak/Pivot/Profile/SetpointVelocity", pivotSetpoint.velocity);
+      Logger.recordOutput("Beak/Pivot/Profile/GoalAngleRad", pivotGoalState.position);
     } else {
       // Reset position
-      setpoint = new State(getPivotAngle().getRadians(), 0.0);
+      pivotSetpoint = new State(getPivotAngle().getRadians(), 0.0);
 
       // Clear logs
-      Logger.recordOutput("Beak/Profile/SetpointAngle", 0.0);
-      Logger.recordOutput("Beak/Profile/SetpointVelocity", 0.0);
-      Logger.recordOutput("Beak/Profile/GoalAngleRad", 0.0);
+      Logger.recordOutput("Beak/Pivot/Profile/SetpointAngle", 0.0);
+      Logger.recordOutput("Beak/Pivot/Profile/SetpointVelocity", 0.0);
+      Logger.recordOutput("Beak/Pivot/Profile/GoalAngleRad", 0.0);
     }
 
-    // Run tunnel and gripper
+    // Run roller
     if (!isEStopped) {
       switch (rollerGoal) {
         case IDLE -> {
           rollerIO.stop();
+          if (shouldManipulateCoral && !hasCoral) {
+            setRollerGoal(RollerGoal.GRIP);
+          }
         }
         case GRIP -> {
           if (hasCoral) {
             rollerIO.runVolts(rollerHoldVolts.get());
-            ;
           } else {
-            rollerIO.runVolts(rollerIntakeVolts.get());
+            if (shouldManipulateCoral) {
+              rollerIO.runVolts(rollerIntakeVolts.get());
+            } else {
+              setRollerGoal(RollerGoal.IDLE);
+            }
           }
         }
         case EJECT -> {
-          rollerIO.runVolts(rollerEjectVolts.get());
+          if (hasCoral) {
+            rollerIO.runVolts(rollerEjectVolts.get());
+          } else {
+            setRollerGoal(RollerGoal.IDLE); // Might need to add a timer before switching to IDLE
+          }
         }
         case L1_EJECT -> {
-          rollerIO.runVolts(rollerL1EjectVolts.get());
+          if (hasCoral) {
+            rollerIO.runVolts(rollerL1EjectVolts.get());
+          } else {
+            setRollerGoal(RollerGoal.IDLE); // Might need to add a timer before switching to IDLE
+          }
         }
       }
     } else {
@@ -275,10 +293,9 @@ public class Beak {
       rollerIO.stop();
     }
 
-    // Check algae state
+    // Check coral state
     if (Constants.getRobot() != Constants.RobotType.SIMBOT) {
       if (Math.abs(rollerInputs.data.torqueCurrentAmps()) >= 5.0) {
-        System.out.println("Beak Roller Current Limit Hit");
         hasCoral =
             coralDebouncer.calculate(
                 Math.abs(rollerInputs.data.velocityRadsPerSec()) <= coralVelocityThresh.get());
@@ -291,26 +308,28 @@ public class Beak {
     SmartDashboard.putBoolean("Has Coral", hasCoral());
 
     // Log state
-    Logger.recordOutput("Beak/CoastOverride", coastOverride.getAsBoolean());
-    Logger.recordOutput("Beak/DisableOverride", disableOverride.getAsBoolean());
+    Logger.recordOutput("Beak/Pivot/CoastOverride", coastOverride.getAsBoolean());
+    Logger.recordOutput("Beak/Pivot/DisableOverride", disableOverride.getAsBoolean());
 
     // Record cycle time
     LoggedTracer.record("Beak");
   }
 
-  @AutoLogOutput(key = "Beak/MeasuredAngleDeg")
+  @AutoLogOutput(key = "Beak/Pivot/MeasuredAngleDeg")
   public double getMeasuredAngleDeg() {
     return beakInputs.data.positionRad().getDegrees();
   }
 
-  public void setGoal(Supplier<Rotation2d> goal) {
-    this.goal =
-        () -> MathUtil.inputModulus(goal.get().getRadians(), -3.0 * Math.PI / 2.0, Math.PI / 2.0);
-    atGoal = false;
+  public void setGoal(Supplier<Rotation2d> pivotGoal) {
+    this.pivotGoal =
+        () ->
+            MathUtil.inputModulus(
+                pivotGoal.get().getRadians(), -3.0 * Math.PI / 2.0, Math.PI / 2.0);
+    pivotAtGoal = false;
   }
 
-  public double atGoal() {
-    return goal.getAsDouble();
+  public double getGoal() {
+    return pivotGoal.getAsDouble();
   }
 
   @AutoLogOutput
@@ -318,9 +337,9 @@ public class Beak {
     return hasCoral && !disableGamePieceDetectionOverride.getAsBoolean();
   }
 
-  @AutoLogOutput(key = "Beak/MeasuredAngle")
+  @AutoLogOutput(key = "Beak/Pivot/MeasuredAngle")
   public Rotation2d getPivotAngle() {
-    return beakInputs.data.positionRad().plus(maxAngle).minus(homingOffset);
+    return beakInputs.data.positionRad().plus(maxPivotAngle).minus(homingOffset);
   }
 
   public void resetHasCoral() {
@@ -338,36 +357,16 @@ public class Beak {
     this.disableGamePieceDetectionOverride = disableGamePieceDetectionOverride;
   }
 
-  private void setBrakeMode(boolean enabled) {
-    if (brakeModeEnabled == enabled) return;
-    brakeModeEnabled = enabled;
+  private void setPivotBrakeMode(boolean enabled) {
+    if (pivotBrakeModeEnabled == enabled) return;
+    pivotBrakeModeEnabled = enabled;
     beakIO.setBrakeMode(enabled);
   }
 
-  public Command staticCharacterization() {
-    final StaticCharacterizationState state = new StaticCharacterizationState();
-    Timer timer = new Timer();
-    return Commands.startRun(
-            () -> {
-              stopProfile = true;
-              timer.restart();
-            },
-            () -> {
-              state.characterizationOutput = staticCharacterizationRampRate.get() * timer.get();
-              beakIO.runOpenLoop(state.characterizationOutput);
-              Logger.recordOutput(
-                  "Beak/StaticCharacterizationOutput", state.characterizationOutput);
-            })
-        .until(
-            () -> beakInputs.data.velocityRadPerSec() >= staticCharacterizationVelocityThresh.get())
-        .andThen(beakIO::stop)
-        .andThen(Commands.idle())
-        .finallyDo(
-            () -> {
-              stopProfile = false;
-              timer.stop();
-              Logger.recordOutput("Beak/CharacterizationOutput", state.characterizationOutput);
-            });
+  private void setRollerBrakeMode(boolean enabled) {
+    if (rollerBrakeModeEnabled == enabled) return;
+    rollerBrakeModeEnabled = enabled;
+    rollerIO.setBrakeMode(enabled);
   }
 
   public Command homingSequence() {
@@ -399,14 +398,33 @@ public class Beak {
             });
   }
 
-  public void runVolts(double volt) {
-    beakIO.runVolts(volt);
-  }
-
-  public void runBeakIntakeOpenLoopVolt(double volt) {
-    isIntaking = true;
-    rollerGoal = RollerGoal.GRIP;
-    rollerVolts = volt;
+  public Command staticCharacterization() {
+    final StaticCharacterizationState state = new StaticCharacterizationState();
+    Timer timer = new Timer();
+    return Commands.startRun(
+            () -> {
+              stopProfile = true;
+              timer.restart();
+            },
+            () -> {
+              state.characterizationOutput =
+                  staticPivotCharacterizationRampRate.get() * timer.get();
+              beakIO.runOpenLoop(state.characterizationOutput);
+              Logger.recordOutput(
+                  "Beak/StaticCharacterizationOutput", state.characterizationOutput);
+            })
+        .until(
+            () ->
+                beakInputs.data.velocityRadPerSec()
+                    >= staticPivotCharacterizationVelocityThresh.get())
+        .andThen(beakIO::stop)
+        .andThen(Commands.idle())
+        .finallyDo(
+            () -> {
+              stopProfile = false;
+              timer.stop();
+              Logger.recordOutput("Beak/CharacterizationOutput", state.characterizationOutput);
+            });
   }
 
   private static class StaticCharacterizationState {
