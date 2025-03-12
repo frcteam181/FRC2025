@@ -16,8 +16,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants;
 import frc.robot.Constants.RobotType;
 import frc.robot.Robot;
-import frc.robot.subsystems.rollers.RollerSystemIO;
-import frc.robot.subsystems.rollers.RollerSystemIOInputsAutoLogged;
 import frc.robot.util.EqualsUtil;
 import frc.robot.util.LoggedTracer;
 import frc.robot.util.LoggedTunableNumber;
@@ -30,50 +28,50 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Extender {
-  public static final Rotation2d minAngle = new Rotation2d(0.0);
-  public static final Rotation2d maxAngle = new Rotation2d(0.0);
+  public static final Rotation2d minPivotAngle = new Rotation2d(-35.0);
+  public static final Rotation2d maxPivotAngle = new Rotation2d(90.0);
 
   // Tunable numbers
-  private static final LoggedTunableNumber kP = new LoggedTunableNumber("Extender/kP");
-  private static final LoggedTunableNumber kD = new LoggedTunableNumber("Extender/kD");
-  private static final LoggedTunableNumber kS = new LoggedTunableNumber("Extender/kS");
-  private static final LoggedTunableNumber kG = new LoggedTunableNumber("Extender/kG");
-  private static final LoggedTunableNumber maxVelocityDegPerSec =
-      new LoggedTunableNumber("Extender/MaxVelocityDegreesPerSec", 0.0);
-  private static final LoggedTunableNumber maxAccelerationDegPerSec2 =
-      new LoggedTunableNumber("Extender/MaxAccelerationDegreesPerSec2", 0.0);
-  private static final LoggedTunableNumber algaeMaxVelocityDegPerSec =
-      new LoggedTunableNumber("Extender/AlgaeMaxVelocityDegreesPerSec", 0.0);
-  private static final LoggedTunableNumber algaeMaxAccelerationDegPerSec2 =
-      new LoggedTunableNumber("Extender/AlgaeMaxAccelerationDegreesPerSec2", 0.0);
-  private static final LoggedTunableNumber staticCharacterizationVelocityThresh =
-      new LoggedTunableNumber("Extender/StaticCharacterizationVelocityThresh", 0.0);
-  private static final LoggedTunableNumber staticCharacterizationRampRate =
-      new LoggedTunableNumber("Extender/StaticCharacterizationRampRate", 0.0);
+  private static final LoggedTunableNumber kP = new LoggedTunableNumber("Extender/Pivot/kP");
+  private static final LoggedTunableNumber kD = new LoggedTunableNumber("Extender/Pivot/kD");
+  private static final LoggedTunableNumber kS = new LoggedTunableNumber("Extender/Pivot/kS");
+  private static final LoggedTunableNumber kG = new LoggedTunableNumber("Extender/Pivot/kG");
+  private static final LoggedTunableNumber maxPivotVelocityDegPerSec =
+      new LoggedTunableNumber("Extender/Pivot/MaxVelocityDegreesPerSec", 0.0);
+  private static final LoggedTunableNumber maxPivotAccelerationDegPerSec2 =
+      new LoggedTunableNumber("Extender/Pivot/MaxAccelerationDegreesPerSec2", 0.0);
+  private static final LoggedTunableNumber algaePivotMaxVelocityDegPerSec =
+      new LoggedTunableNumber("Extender/Pivot/AlgaeMaxVelocityDegreesPerSec", 0.0);
+  private static final LoggedTunableNumber algaePivotMaxAccelerationDegPerSec2 =
+      new LoggedTunableNumber("Extender/Pivot/AlgaeMaxAccelerationDegreesPerSec2", 0.0);
+  private static final LoggedTunableNumber staticPivotCharacterizationVelocityThresh =
+      new LoggedTunableNumber("Extender/Pivot/StaticCharacterizationVelocityThresh", 0.0);
+  private static final LoggedTunableNumber staticPivotCharacterizationRampRate =
+      new LoggedTunableNumber("Extender/Pivot/StaticCharacterizationRampRate", 0.0);
   private static final LoggedTunableNumber algaeVelocityThresh =
-      new LoggedTunableNumber("Extender/AlgaeVelocityThreshold", 0.0);
-  public static final LoggedTunableNumber gripperHoldVolts =
-      new LoggedTunableNumber("Extender/GripperHoldVolts", 2.0);
-  public static final LoggedTunableNumber gripperIntakeVolts =
-      new LoggedTunableNumber("Extender/GripperIntakeVolts", 2.0);
-  public static final LoggedTunableNumber gripperEjectVolts =
-      new LoggedTunableNumber("Extender/GripperEjectVolts", 0.0);
-  public static final LoggedTunableNumber gripperL1EjectVolts =
-      new LoggedTunableNumber("Extender/GripperL1EjectVolts", 0.0);
-  public static final LoggedTunableNumber gripperCurrentLimit =
-      new LoggedTunableNumber("Extender/GripperCurrentLimit", 0.0);
-  public static final LoggedTunableNumber tolerance =
-      new LoggedTunableNumber("Extender/Tolerance", 0.0);
+      new LoggedTunableNumber("Extender/Roller/AlgaeVelocityThreshold", 0.0);
+  public static final LoggedTunableNumber rollerHoldVolts =
+      new LoggedTunableNumber("Extender/Roller/HoldVolts", 2.0);
+  public static final LoggedTunableNumber rollerIntakeVolts =
+      new LoggedTunableNumber("Extender/Roller/IntakeVolts", 2.0);
+  public static final LoggedTunableNumber rollerEjectVolts =
+      new LoggedTunableNumber("Extender/Roller/EjectVolts", -2.0);
+  public static final LoggedTunableNumber rollerL1EjectVolts =
+      new LoggedTunableNumber("Extender/Roller/L1EjectVolts", -2.0);
+  public static final LoggedTunableNumber rollerCurrentLimit =
+      new LoggedTunableNumber("Extender/Roller/CurrentLimit", 50.0);
+  public static final LoggedTunableNumber pivotTolerance =
+      new LoggedTunableNumber("Extender/Pivot/Tolerance", 0.4);
   public static final LoggedTunableNumber intakeReverseVolts =
-      new LoggedTunableNumber("Extender/IntakeReverseVolts", 0.0);
+      new LoggedTunableNumber("Extender/Roller/IntakeReverseVolts", -1.8);
   public static final LoggedTunableNumber intakeReverseTime =
-      new LoggedTunableNumber("Extender/IntakeReverseTime", 0.0);
-  public static final LoggedTunableNumber homingTimeSecs =
-      new LoggedTunableNumber("Extender/HomingTimeSecs", 0.0);
-  public static final LoggedTunableNumber homingVolts =
-      new LoggedTunableNumber("Extender/HomingVolts", 0.0);
-  public static final LoggedTunableNumber homingVelocityThresh =
-      new LoggedTunableNumber("Extender/HomingVelocityThreshold", 0.0);
+      new LoggedTunableNumber("Extender/Roller/IntakeReverseTime", 0.1);
+  public static final LoggedTunableNumber homingPivotTimeSecs =
+      new LoggedTunableNumber("Extender/Pivot/HomingTimeSecs", 0.2);
+  public static final LoggedTunableNumber homingPivotVolts =
+      new LoggedTunableNumber("Extender/Pivot/HomingVolts", 1.5);
+  public static final LoggedTunableNumber homingPivotVelocityThresh =
+      new LoggedTunableNumber("Extender/Pivot/HomingVelocityThreshold", 0.6);
 
   static {
     switch (Constants.getRobot()) {
@@ -92,41 +90,43 @@ public class Extender {
     }
   }
 
-  public enum GripperGoal {
+  public enum RollerGoal {
     IDLE,
     GRIP,
     EJECT,
+    L1_EJECT
   }
 
   // Hardware
   private final ExtenderIO extenderIO;
   private final ExtenderIOInputsAutoLogged extenderInputs = new ExtenderIOInputsAutoLogged();
-  private final RollerSystemIO gripperIO;
-  private final RollerSystemIOInputsAutoLogged gripperInputs = new RollerSystemIOInputsAutoLogged();
 
-  @AutoLogOutput(key = "Extender/BrakeModeEnabled")
-  private boolean brakeModeEnabled = true;
+  @AutoLogOutput(key = "Extender/Pivot/BrakeModeEnabled")
+  private boolean pivotBrakeModeEnabled = true;
+
+  @AutoLogOutput(key = "Extender/Roller/BrakeModeEnabled")
+  private boolean rollerBrakeModeEnabled = true;
 
   // Overrides
   private BooleanSupplier coastOverride = () -> false;
   private BooleanSupplier disableOverride = () -> false;
   private BooleanSupplier disableGamePieceDetectionOverride = () -> false;
 
-  private TrapezoidProfile profile;
+  private TrapezoidProfile pivotProfile;
   private TrapezoidProfile algaeProfile;
-  @Getter private State setpoint = new State();
-  private DoubleSupplier goal = () -> 0.0;
+  @Getter private State pivotSetpoint = new State();
+  private DoubleSupplier pivotGoal = () -> 0.0;
   private boolean stopProfile = false;
   @Getter private boolean shouldEStop = false;
   @Getter private boolean isEStopped = false;
   @Getter private boolean isIntaking = false;
   private final Timer intakingReverseTimer = new Timer();
 
-  @AutoLogOutput(key = "Extender/Profile/AtGoal")
-  private boolean atGoal = false;
+  @AutoLogOutput(key = "Extender/Pivot/Profile/PivotAtGoal")
+  private boolean pivotAtGoal = false;
 
-  @Setter private double gripperVolts = 0.0;
-  @AutoLogOutput @Setter private GripperGoal gripperGoal = GripperGoal.IDLE;
+  @Setter private double rollerVolts = 2.0;
+  @AutoLogOutput @Setter private RollerGoal rollerGoal = RollerGoal.IDLE;
 
   @Setter private boolean hasAlgae = false;
   @Getter private boolean doNotStopIntaking = false;
@@ -136,71 +136,66 @@ public class Extender {
   private Debouncer toleranceDebouncer = new Debouncer(0.25, DebounceType.kRising);
   private Debouncer homingDebouncer = new Debouncer(0.25, DebounceType.kRising);
 
-  //@AutoLogOutput private Rotation2d homingOffset = Rotation2d.kZero; We don't use this variable since we have absolute encoders
+  @AutoLogOutput private Rotation2d homingOffset = Rotation2d.kZero;
 
   // Disconnected Alerts
   private final Alert pivotMotorDisconnectedAlert =
       new Alert("Extender Motor Disconnected!", Alert.AlertType.kWarning);
-  private final Alert pivotEncoderDisconnectedAlert =
-      new Alert("Extender Encoder Disconnected!", Alert.AlertType.kWarning);
-  private final Alert gripperMotorDisconnectedAlert =
-      new Alert("Gripper Motor Disconnected!", Alert.AlertType.kWarning);
+  // private final Alert pivotEncoderDisconnectedAlert =
+  //     new Alert("Extender Encoder Disconnected!", Alert.AlertType.kWarning);
+  private final Alert rollerMotorDisconnectedAlert =
+      new Alert("Roller Motor Disconnected!", Alert.AlertType.kWarning);
 
   private boolean lastAlgaeButtonPressed = false;
 
-  public Extender(ExtenderIO extenderIO, RollerSystemIO gripperIO) {
+  public Extender(ExtenderIO extenderIO) {
     this.extenderIO = extenderIO;
-    this.gripperIO = gripperIO;
 
-    profile =
+    pivotProfile =
         new TrapezoidProfile(
             new TrapezoidProfile.Constraints(
-                Units.degreesToRadians(maxVelocityDegPerSec.get()),
-                Units.degreesToRadians(maxAccelerationDegPerSec2.get())));
+                Units.degreesToRadians(maxPivotVelocityDegPerSec.get()),
+                Units.degreesToRadians(maxPivotAccelerationDegPerSec2.get())));
     intakingReverseTimer.start();
   }
 
   public void periodic() {
     extenderIO.updateInputs(extenderInputs);
-    Logger.processInputs("Extender/Pivot", extenderInputs);
-    gripperIO.updateInputs(gripperInputs);
-    Logger.processInputs("Extender/Gripper", gripperInputs);
+    Logger.processInputs("Extender/HardwareReadOuts", extenderInputs);
 
     pivotMotorDisconnectedAlert.set(
-        !extenderInputs.data.motorConnected()
+        !extenderInputs.data.pivotConnected()
             && Constants.getRobot() == RobotType.COMPBOT
             && !Robot.isJITing());
-    gripperMotorDisconnectedAlert.set(
-        !gripperInputs.data.connected()
+    rollerMotorDisconnectedAlert.set(
+        !extenderInputs.data.rollerConnected()
             && Constants.getRobot() == RobotType.COMPBOT
             && !Robot.isJITing());
 
     // Update Tunable numbers
     if (kP.hasChanged(hashCode()) || kD.hasChanged(hashCode())) {
-      extenderIO.setPID(kP.get(), 0.0, kD.get());
+      extenderIO.setPivotPID(kP.get(), 0.0, kD.get());
     }
-    if (maxVelocityDegPerSec.hasChanged(hashCode())
-        || maxAccelerationDegPerSec2.hasChanged(hashCode())) {
-      profile =
+    if (maxPivotVelocityDegPerSec.hasChanged(hashCode())
+        || maxPivotAccelerationDegPerSec2.hasChanged(hashCode())) {
+      pivotProfile =
           new TrapezoidProfile(
               new TrapezoidProfile.Constraints(
-                  Units.degreesToRadians(maxVelocityDegPerSec.get()),
-                  Units.degreesToRadians(maxAccelerationDegPerSec2.get())));
+                  Units.degreesToRadians(maxPivotVelocityDegPerSec.get()),
+                  Units.degreesToRadians(maxPivotAccelerationDegPerSec2.get())));
     }
-    if (algaeMaxVelocityDegPerSec.hasChanged(hashCode())
-        || algaeMaxAccelerationDegPerSec2.hasChanged(hashCode())) {
+    if (algaePivotMaxVelocityDegPerSec.hasChanged(hashCode())
+        || algaePivotMaxAccelerationDegPerSec2.hasChanged(hashCode())) {
       algaeProfile =
           new TrapezoidProfile(
               new TrapezoidProfile.Constraints(
-                  Units.degreesToRadians(algaeMaxVelocityDegPerSec.get()),
-                  Units.degreesToRadians(algaeMaxAccelerationDegPerSec2.get())));
-    }
-    if (gripperCurrentLimit.hasChanged(hashCode())) {
-      gripperIO.setCurrentLimit(gripperCurrentLimit.get());
+                  Units.degreesToRadians(algaePivotMaxVelocityDegPerSec.get()),
+                  Units.degreesToRadians(algaePivotMaxAccelerationDegPerSec2.get())));
     }
 
     // Set coast mode
-    setBrakeMode(!coastOverride.getAsBoolean());
+    setPivotBrakeMode(!coastOverride.getAsBoolean());
+    setRollerBrakeMode(!coastOverride.getAsBoolean());
 
     // Run Profile
     final boolean shouldRunProfile =
@@ -209,85 +204,111 @@ public class Extender {
             && !disableOverride.getAsBoolean()
             && !isEStopped
             && DriverStation.isEnabled();
-    Logger.recordOutput("Extender/RunningProfile", shouldRunProfile);
+    Logger.recordOutput("Extender/Pivot/RunningProfile", shouldRunProfile);
 
     // Check if out of tolerance
     boolean outOfTolerance =
-        Math.abs(getPivotAngle().getRadians() - setpoint.position) > tolerance.get();
-    shouldEStop = toleranceDebouncer.calculate(outOfTolerance && shouldRunProfile);
+        Math.abs(getPivotAngle().getRadians() - pivotSetpoint.position) > pivotTolerance.get();
+
+    Logger.recordOutput("Extender/Pivot/OutOfTolerance", pivotTolerance.get());
+
+    shouldEStop = false; // toleranceDebouncer.calculate(outOfTolerance && shouldRunProfile);
+
+    Logger.recordOutput("Extender/Pivot/ShouldEstop", shouldEStop);
+
     if (shouldRunProfile) {
       // Clamp goal
-      var goalState =
+      var pivotGoalState =
           new State(
-              MathUtil.clamp(goal.getAsDouble(), minAngle.getRadians(), maxAngle.getRadians()),
+              MathUtil.clamp(
+                  pivotGoal.getAsDouble(), minPivotAngle.getRadians(), maxPivotAngle.getRadians()),
               0.0);
-      setpoint =
-          (hasAlgae() ? algaeProfile : profile)
-              .calculate(Constants.loopPeriodSecs, setpoint, goalState);
-      extenderIO.runPosition(
+      pivotSetpoint =
+          (hasAlgae() ? algaeProfile : pivotProfile)
+              .calculate(Constants.loopPeriodSecs, pivotSetpoint, pivotGoalState);
+      extenderIO.runPivotPosition(
           Rotation2d.fromRadians(
-              setpoint.position - maxAngle.getRadians() /**+ homingOffset.getRadians()*/),
-          kS.get() * Math.signum(setpoint.velocity) // Magnitude irrelevant
+              pivotSetpoint.position - maxPivotAngle.getRadians() + homingOffset.getRadians()),
+          kS.get() * Math.signum(pivotSetpoint.velocity) // Magnitude irrelevant
               + kG.get() * getPivotAngle().getCos());
       // Check at goal
-      atGoal =
-          EqualsUtil.epsilonEquals(setpoint.position, goalState.position)
-              && EqualsUtil.epsilonEquals(setpoint.velocity, 0.0);
+      pivotAtGoal =
+          EqualsUtil.epsilonEquals(pivotSetpoint.position, pivotGoalState.position)
+              && EqualsUtil.epsilonEquals(pivotSetpoint.velocity, 0.0);
 
       // Log State
-      Logger.recordOutput("Extender/Profile/SetpointAngle", setpoint.position);
-      Logger.recordOutput("Extender/Profile/SetpointVelocity", setpoint.velocity);
-      Logger.recordOutput("Extender/Profile/GoalAngleRad", goalState.position);
+      Logger.recordOutput("Extender/Pivot/Profile/SetpointAngle", pivotSetpoint.position);
+      Logger.recordOutput("Extender/Pivot/Profile/SetpointVelocity", pivotSetpoint.velocity);
+      Logger.recordOutput("Extender/Pivot/Profile/GoalAngleRad", pivotGoalState.position);
     } else {
       // Reset position
-      setpoint = new State(getPivotAngle().getRadians(), 0.0);
+      pivotSetpoint = new State(getPivotAngle().getRadians(), 0.0);
 
       // Clear logs
-      Logger.recordOutput("Extender/Profile/SetpointAngle", 0.0);
-      Logger.recordOutput("Extender/Profile/SetpointVelocity", 0.0);
-      Logger.recordOutput("Extender/Profile/GoalAngleRad", 0.0);
+      Logger.recordOutput("Extender/Pivot/Profile/SetpointAngle", 0.0);
+      Logger.recordOutput("Extender/Pivot/Profile/SetpointVelocity", 0.0);
+      Logger.recordOutput("Extender/Pivot/Profile/GoalAngleRad", 0.0);
     }
 
-    // Run Gripper
+    // Run tunnel and gripper
     if (!isEStopped) {
-      double intakeVolts = gripperVolts;
-      if (isIntaking && !hasAlgae) {
-        intakingReverseTimer.restart();
-      } else if (intakingReverseTimer.get() < intakeReverseTime.get()) {
-        intakeVolts = intakeReverseVolts.get();
-      } else if (isIntaking) {
-        intakeVolts = 0.0;
+      switch (rollerGoal) {
+        case IDLE -> {
+          extenderIO.stopRoller();
+        }
+        case GRIP -> {
+          if (hasAlgae) {
+
+            extenderIO.runRollerVolts(rollerHoldVolts.get());
+          } else {
+
+            extenderIO.runRollerVolts(rollerIntakeVolts.get());
+          }
+        }
+        case EJECT -> {
+          extenderIO.runRollerVolts(rollerEjectVolts.get());
+        }
+        case L1_EJECT -> {
+          extenderIO.runRollerVolts(rollerL1EjectVolts.get());
+        }
       }
     } else {
-      extenderIO.stop();
-      gripperIO.stop();
+      extenderIO.stopPivot();
+      extenderIO.stopRoller();
     }
 
-    /* Add Code HERE ------------------------------------------------------------- */
-
-    // Check Algae state
-
-    /* Add Code HERE ------------------------------------------------------------- */
+    // Check algae state
+    if (Constants.getRobot() != Constants.RobotType.SIMBOT) {
+      if (Math.abs(extenderInputs.data.rollerTorqueCurrentAmps()) >= 5.0) {
+        hasAlgae =
+            algaeDebouncer.calculate(
+                Math.abs(extenderInputs.data.rollerVelocity()) <= algaeVelocityThresh.get());
+      } else {
+        algaeDebouncer.calculate(hasAlgae);
+      }
+    }
 
     // Display hasAlgae
     SmartDashboard.putBoolean("Has Algae", hasAlgae());
 
     // Log state
-    Logger.recordOutput("Extender/CoastOverride", coastOverride.getAsBoolean());
-    Logger.recordOutput("Extender/DisableOverride", disableOverride.getAsBoolean());
+    Logger.recordOutput("Extender/Pivot/CoastOverride", coastOverride.getAsBoolean());
+    Logger.recordOutput("Extender/Pivot/DisableOverride", disableOverride.getAsBoolean());
 
     // Record cycle time
     LoggedTracer.record("Extender");
   }
 
-  public void setGoal(Supplier<Rotation2d> goal) {
-    this.goal =
-        () -> MathUtil.inputModulus(goal.get().getRadians(), -3.0 * Math.PI / 2.0, Math.PI / 2.0);
-    atGoal = false;
+  public void setPivotGoal(Supplier<Rotation2d> pivotGoal) {
+    this.pivotGoal =
+        () ->
+            MathUtil.inputModulus(
+                pivotGoal.get().getRadians(), -3.0 * Math.PI / 2.0, Math.PI / 2.0);
+    pivotAtGoal = false;
   }
 
-  public double atGoal() {
-    return goal.getAsDouble();
+  public double pivotAtGoal() {
+    return pivotGoal.getAsDouble();
   }
 
   @AutoLogOutput
@@ -295,14 +316,19 @@ public class Extender {
     return hasAlgae && !disableGamePieceDetectionOverride.getAsBoolean();
   }
 
-  @AutoLogOutput(key = "Extender/MeasuredAngle")
+  @AutoLogOutput(key = "Extender/Pivot/MeasuredAngleR2d")
   public Rotation2d getPivotAngle() {
-    return extenderInputs.data.position();
+    return extenderInputs.data.pivotPosition();
   }
 
-  @AutoLogOutput(key = "Extender/MeasuredAngleDeg")
+  @AutoLogOutput(key = "Extender/Pivot/MeasuredAngleDeg")
   public double getPivotAngleDeg() {
-    return extenderInputs.data.position().getDegrees();
+    return extenderInputs.data.pivotPosition().getDegrees();
+  }
+
+  @AutoLogOutput(key = "Extender/Pivot/MeasuredAlteredAngleDeg")
+  public double getPivotAngleAlteredDeg() {
+    return extenderInputs.data.pivotPosition().getDegrees() + homingOffset.getDegrees();
   }
 
   public void resetHasAlgae() {
@@ -320,12 +346,68 @@ public class Extender {
     this.disableGamePieceDetectionOverride = disableGamePieceDetectionOverride;
   }
 
-  private void setBrakeMode(boolean enabled) {
-    if (brakeModeEnabled == enabled) return;
-    brakeModeEnabled = enabled;
-    extenderIO.setBrakeMode(enabled);
+  public Command homingSequence() {
+    return Commands.startRun(
+            () -> {
+              stopProfile = true;
+              homingDebouncer = new Debouncer(homingPivotTimeSecs.get(), DebounceType.kRising);
+              homingDebouncer.calculate(false);
+            },
+            () -> {
+              if (disableOverride.getAsBoolean() || coastOverride.getAsBoolean()) return;
+              extenderIO.runPivotVolts(homingPivotVolts.get());
+            })
+        .raceWith(
+            Commands.runOnce(() -> {})
+                .andThen(
+                    Commands.waitUntil(
+                        () ->
+                            homingDebouncer.calculate(
+                                Math.abs(extenderInputs.data.pivotVelocityRadPerSec())
+                                    <= homingPivotVelocityThresh.get()))))
+        .andThen(
+            () -> {
+              homingOffset = extenderInputs.data.pivotPosition();
+            })
+        .finallyDo(
+            () -> {
+              stopProfile = false;
+            });
   }
 
+  // Default Pivot Methods
+
+  private void setPivotBrakeMode(boolean enabled) {
+    if (pivotBrakeModeEnabled == enabled) return;
+    pivotBrakeModeEnabled = enabled;
+    extenderIO.setPivotBrakeMode(enabled);
+  }
+
+  public void runPivotVolts(double volt) {
+    extenderIO.runPivotVolts(volt);
+  }
+
+  public void stopPivot() {
+    extenderIO.stopPivot();
+  }
+
+  // Default Roller Methods
+
+  private void setRollerBrakeMode(boolean enabled) {
+    if (rollerBrakeModeEnabled == enabled) return;
+    rollerBrakeModeEnabled = enabled;
+    extenderIO.setRollerBrakeMode(enabled);
+  }
+
+  public void runRollerVolts(double volt) {
+    extenderIO.runRollerVolts(volt);
+  }
+
+  public void stopRoller() {
+    extenderIO.stopRoller();
+  }
+
+  // Characterization Methods
   public Command staticCharacterization() {
     final StaticCharacterizationState state = new StaticCharacterizationState();
     Timer timer = new Timer();
@@ -335,64 +417,25 @@ public class Extender {
               timer.restart();
             },
             () -> {
-              state.characterizationOutput = staticCharacterizationRampRate.get() * timer.get();
-              extenderIO.runOpenLoop(state.characterizationOutput);
+              state.characterizationOutput =
+                  staticPivotCharacterizationRampRate.get() * timer.get();
+              extenderIO.runPivotOpenLoop(state.characterizationOutput);
               Logger.recordOutput(
-                  "Extender/StaticCharacterizationOutput", state.characterizationOutput);
+                  "Extender/Pivot/StaticCharacterizationOutput", state.characterizationOutput);
             })
         .until(
             () ->
-                extenderInputs.data.velocityRadPerSec()
-                    >= staticCharacterizationVelocityThresh.get())
-        .andThen(extenderIO::stop)
+                extenderInputs.data.pivotVelocityRadPerSec()
+                    >= staticPivotCharacterizationVelocityThresh.get())
+        .andThen(extenderIO::stopPivot)
         .andThen(Commands.idle())
         .finallyDo(
             () -> {
               stopProfile = false;
               timer.stop();
-              Logger.recordOutput("Extender/CharacterizationOutput", state.characterizationOutput);
+              Logger.recordOutput(
+                  "Extender/Pivot/CharacterizationOutput", state.characterizationOutput);
             });
-  }
-
-  // public Command homingSequence() {
-  //   return Commands.startRun(
-  //           () -> {
-  //             stopProfile = true;
-  //             homingDebouncer = new Debouncer(homingTimeSecs.get(), DebounceType.kRising);
-  //             homingDebouncer.calculate(false);
-  //           },
-  //           () -> {
-  //             if (disableOverride.getAsBoolean() || coastOverride.getAsBoolean()) return;
-  //             extenderIO.runVolts(homingVolts.get());
-  //           })
-  //       .raceWith(
-  //           Commands.runOnce(() -> {})
-  //               .andThen(
-  //                   Commands.waitUntil(
-  //                       () ->
-  //                           homingDebouncer.calculate(
-  //                               Math.abs(extenderInputs.data.velocityRadPerSec())
-  //                                   <= homingVelocityThresh.get()))))
-  //       .andThen(
-  //           () -> {
-  //             homingOffset = extenderInputs.data.position();
-  //           })
-  //       .finallyDo(
-  //           () -> {
-  //             stopProfile = false;
-  //           });
-  // }
-
-  public void runVolts(double volt) {
-    extenderIO.runVolts(volt);
-  }
-
-  public void runGrip(double volt) {
-    gripperIO.runVolts(volt);
-  }
-
-  public void stopGrip() {
-    gripperIO.stop();
   }
 
   private static class StaticCharacterizationState {

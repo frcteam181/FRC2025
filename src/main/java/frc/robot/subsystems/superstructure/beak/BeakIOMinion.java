@@ -3,6 +3,7 @@ package frc.robot.subsystems.superstructure.beak;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Celsius;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.util.PhoenixUtil.tryUntilOk;
 
@@ -61,6 +62,15 @@ public class BeakIOMinion implements BeakIO {
     motor = new TalonFXS(3, "rio");
     encoder = new CANcoder(30, "rio");
 
+    // Configure CANCoder
+    config.ExternalFeedback.FeedbackRemoteSensorID = encoder.getDeviceID();
+    config.ExternalFeedback.ExternalFeedbackSensorSource =
+        ExternalFeedbackSensorSourceValue.FusedCANcoder;
+    canConfig.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.5));
+    canConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
+    canConfig.MagnetSensor.withMagnetOffset(Rotations.of(0.09));
+    encoder.getConfigurator().apply(canConfig);
+
     // Configure motor
     config.Commutation.MotorArrangement = MotorArrangementValue.Minion_JST;
     config.ExternalFeedback.FeedbackRemoteSensorID = encoder.getDeviceID();
@@ -69,18 +79,14 @@ public class BeakIOMinion implements BeakIO {
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     config.Slot0 = new Slot0Configs().withKP(0.0).withKI(0.0).withKD(0.0);
     config.ExternalFeedback.SensorToMechanismRatio = 1.0;
+    config.ExternalFeedback.RotorToSensorRatio = 5.0;
     config.CurrentLimits.StatorCurrentLimitEnable = true;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     tryUntilOk(5, () -> motor.getConfigurator().apply(config, 0.25));
 
-    // Configure CANCoder
-    canConfig.MagnetSensor.MagnetOffset = 0.0;
-    canConfig.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
-    encoder.getConfigurator().apply(canConfig);
-
     // Get and set status signals
-    absPosition = encoder.getAbsolutePosition();
-    velocity = encoder.getVelocity();
+    absPosition = motor.getPosition();
+    velocity = motor.getVelocity();
     appliedVolts = motor.getMotorVoltage();
     torqueCurrent = motor.getTorqueCurrent();
     supplyCurrent = motor.getSupplyCurrent();

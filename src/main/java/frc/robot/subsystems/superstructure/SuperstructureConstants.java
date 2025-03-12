@@ -10,6 +10,6 @@ public class SuperstructureConstants {
     public static final int CANCODER_ID = 0;
     public static final String CANBUS = "rio";
 
-    public static final double maxTravel = 1.8; // meters
+    public static final double maxTravel = 1.5; // meters
   }
 }

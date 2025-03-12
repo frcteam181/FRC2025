@@ -42,20 +42,19 @@ public class Elevator {
   private static final LoggedTunableNumber kD = new LoggedTunableNumber("Elevator/kD");
   private static final LoggedTunableNumber kS = new LoggedTunableNumber("Elevator/kS");
   private static final LoggedTunableNumber kG = new LoggedTunableNumber("Elevator/kG");
-  private static final LoggedTunableNumber kV = new LoggedTunableNumber("Elevator/kV");
   private static final LoggedTunableNumber kA = new LoggedTunableNumber("Elevator/kA");
 
   private static final LoggedTunableNumber maxVelocityMeterPerSec =
-      new LoggedTunableNumber("Elevator/MaxVelocityMeterPerSec", 0.3); // 2.5
+      new LoggedTunableNumber("Elevator/MaxVelocityMeterPerSec", 2.5);
   private static final LoggedTunableNumber maxAccelerationMeterPerSec2 =
-      new LoggedTunableNumber("Elevator/MaxAccelerationMeterPerSec2", 0.3); // 8.0
+      new LoggedTunableNumber("Elevator/MaxAccelerationMeterPerSec2", 8.0);
 
   private static final LoggedTunableNumber homingVolts =
       new LoggedTunableNumber("Elevator/HomingVoltage", -2.0);
   private static final LoggedTunableNumber homingTimeSecs =
       new LoggedTunableNumber("Elevator/HomingTimeSecs", 0.25);
   private static final LoggedTunableNumber homingVelocityThresh =
-      new LoggedTunableNumber("Elevator/HomingVelocityThresh", 0.3); // 5.0
+      new LoggedTunableNumber("Elevator/HomingVelocityThresh", 5.0);
   private static final LoggedTunableNumber tolerance =
       new LoggedTunableNumber("Elevator/Tolerance", 0.5);
 
@@ -82,7 +81,7 @@ public class Elevator {
   @AutoLogOutput(key = "Elevator/HomePositionRad")
   private double homePositionRad = 0.0;
 
-  @AutoLogOutput @Getter private boolean homed = true;
+  @AutoLogOutput @Getter private boolean homed = false;
 
   private Debouncer homingDebouncer = new Debouncer(homingTimeSecs.get());
 
@@ -97,11 +96,10 @@ public class Elevator {
   static {
     switch (Constants.getRobot()) {
       case COMPBOT, DEVBOT -> {
-        kP.initDefault(0);
-        kD.initDefault(0);
+        kP.initDefault(300);
+        kD.initDefault(22);
         kS.initDefault(0);
         kG.initDefault(0);
-        kV.initDefault(0);
         kA.initDefault(0);
       }
       case SIMBOT -> {
@@ -109,7 +107,6 @@ public class Elevator {
         kD.initDefault(2000);
         kS.initDefault(0);
         kG.initDefault(0);
-        kV.initDefault(0);
         kA.initDefault(0);
       }
     }
@@ -230,12 +227,12 @@ public class Elevator {
     this.goal = goal;
   }
 
-  public double getHomePos() {
-    return homePositionRad * 1;
+  public double getHomePosMeter() {
+    return homePositionRad * sprocketRadius;
   }
 
-  public double getMaxTravel() {
-    return (ElevatorConstants.maxTravel / 1) + homePositionRad;
+  public double getMaxTravelMeter() {
+    return ElevatorConstants.maxTravel + (homePositionRad * sprocketRadius);
   }
 
   public void setOverrides(BooleanSupplier coastOverride, BooleanSupplier disabledOverride) {

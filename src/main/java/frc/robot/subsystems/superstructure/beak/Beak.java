@@ -249,39 +249,43 @@ public class Beak {
       Logger.recordOutput("Beak/Profile/GoalAngleRad", 0.0);
     }
 
-    // Run Roller
+    // Run tunnel and gripper
     if (!isEStopped) {
-      double intakeVolts = rollerVolts;
-      if (isIntaking && !hasCoral) {
-        intakingReverseTimer.restart();
-      } else if (intakingReverseTimer.get() < intakeReverseTime.get()) {
-        intakeVolts = intakeReverseVolts.get();
-      } else if (isIntaking) {
-        intakeVolts = 0.0;
-      }
-      rollerIO.runVolts(intakeVolts);
       switch (rollerGoal) {
-        case IDLE -> rollerIO.stop();
+        case IDLE -> {
+          rollerIO.stop();
+        }
         case GRIP -> {
           if (hasCoral) {
             rollerIO.runVolts(rollerHoldVolts.get());
+            ;
           } else {
             rollerIO.runVolts(rollerIntakeVolts.get());
           }
         }
-        case EJECT -> rollerIO.runVolts(rollerEjectVolts.get());
-        case L1_EJECT -> rollerIO.runVolts(rollerL1EjectVolts.get());
+        case EJECT -> {
+          rollerIO.runVolts(rollerEjectVolts.get());
+        }
+        case L1_EJECT -> {
+          rollerIO.runVolts(rollerL1EjectVolts.get());
+        }
       }
     } else {
       beakIO.stop();
       rollerIO.stop();
     }
 
-    /* Add Code HERE ------------------------------------------------------------- */
-
-    // Check Coral state
-
-    /* Add Code HERE ------------------------------------------------------------- */
+    // Check algae state
+    if (Constants.getRobot() != Constants.RobotType.SIMBOT) {
+      if (Math.abs(rollerInputs.data.torqueCurrentAmps()) >= 5.0) {
+        System.out.println("Beak Roller Current Limit Hit");
+        hasCoral =
+            coralDebouncer.calculate(
+                Math.abs(rollerInputs.data.velocityRadsPerSec()) <= coralVelocityThresh.get());
+      } else {
+        coralDebouncer.calculate(hasCoral);
+      }
+    }
 
     // Display hasCoral
     SmartDashboard.putBoolean("Has Coral", hasCoral());
@@ -292,6 +296,11 @@ public class Beak {
 
     // Record cycle time
     LoggedTracer.record("Beak");
+  }
+
+  @AutoLogOutput(key = "Beak/MeasuredAngleDeg")
+  public double getMeasuredAngleDeg() {
+    return beakInputs.data.positionRad().getDegrees();
   }
 
   public void setGoal(Supplier<Rotation2d> goal) {
@@ -392,6 +401,12 @@ public class Beak {
 
   public void runVolts(double volt) {
     beakIO.runVolts(volt);
+  }
+
+  public void runBeakIntakeOpenLoopVolt(double volt) {
+    isIntaking = true;
+    rollerGoal = RollerGoal.GRIP;
+    rollerVolts = volt;
   }
 
   private static class StaticCharacterizationState {

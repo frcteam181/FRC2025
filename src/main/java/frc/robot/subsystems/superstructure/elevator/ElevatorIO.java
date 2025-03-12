@@ -35,6 +35,8 @@ public interface ElevatorIO {
 
   default void runPosition(double positionRad, double feedforward) {}
 
+  default void runVoltPosition(double positionRad, double feedforward) {}
+
   default void setPID(double kP, double kI, double kD) {}
 
   default void setBrakeMode(boolean enabled) {}

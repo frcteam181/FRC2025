@@ -31,7 +31,7 @@ import frc.robot.subsystems.superstructure.elevator.Elevator;
 import frc.robot.subsystems.superstructure.elevator.ElevatorIO;
 import frc.robot.subsystems.superstructure.elevator.ElevatorIOTalonFX;
 import frc.robot.subsystems.superstructure.extender.Extender;
-import frc.robot.subsystems.superstructure.extender.ExtenderIOTalonFX;
+import frc.robot.subsystems.superstructure.extender.ExtenderIOTalonFXNMini;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
@@ -79,9 +79,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         elevator = new Elevator(new ElevatorIOTalonFX());
-        extender =
-            new Extender(
-                new ExtenderIOTalonFX(), new RollerSystemIOMinion(16, "rio", 40, false, true, 1));
+        extender = new Extender(new ExtenderIOTalonFXNMini());
         beak =
             new Beak(new BeakIOMinion(), new RollerSystemIOMinion(15, "rio", 40, false, true, 1));
         break;
@@ -177,13 +175,31 @@ public class RobotContainer {
             () -> -operator.getLeftY(),
             () -> -operator.getLeftX()));
 
-    operator.a().onTrue(Commands.runOnce(superstructure::sendElevatorHome, superstructure));
-    operator.y().onTrue(Commands.runOnce(superstructure::sendElevatorToMiddle, superstructure));
+    // Extender Roller
     // operator
     //     .rightBumper()
-    //     .whileTrue(Commands.runOnce(superstructure::grip, superstructure));
-    // operator.x().whileTrue(Commands.runOnce(superstructure::spit, superstructure));
-    operator.rightBumper().onTrue(Commands.runOnce(superstructure::grip, superstructure));
+    //     .whileTrue(Commands.run(superstructure::gripAlgae, superstructure))
+    //     .onFalse(Commands.run(superstructure::idleAlgae, superstructure));
+    // operator
+    //     .leftBumper()
+    //     .whileTrue(Commands.run(superstructure::spitAlgae, superstructure))
+    //     .onFalse(Commands.run(superstructure::idleAlgae, superstructure));
+
+    // Beak Roller
+    operator
+        .rightBumper()
+        .whileTrue(Commands.run(superstructure::gripCoral, superstructure))
+        .onFalse(Commands.run(superstructure::idleCoral, superstructure));
+    operator
+        .leftBumper()
+        .whileTrue(Commands.run(superstructure::spitCoral, superstructure))
+        .onFalse(Commands.run(superstructure::idleCoral, superstructure));
+    // operator.a().onTrue(Commands.runOnce(superstructure::sendElevatorHome, superstructure));
+    // operator.y().onTrue(Commands.runOnce(superstructure::sendElevatorToPercent, superstructure));
+    // operator.x().onTrue(superstructure.homeElevator());
+
+    // operator.rightBumper().whileTrue(Commands.run(superstructure::grip, superstructure));
+    operator.b().onTrue(superstructure.homeExtender());
   }
 
   // Creates controller rumble command
