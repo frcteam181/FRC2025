@@ -98,7 +98,8 @@ public class Superstructure extends SubsystemBase {
   }
 
   public void ejectAlgae() {
-    extender.setGripperGoal(GripperGoal.EJECT);
+    extender.startEjectTimer();                 // -----------------------------------
+    extender.setGripperGoal(GripperGoal.EJECT); // Swapped the order of these two lines
   }
   // public void ejectAlgae() {
   //   extender.setGripperGoal(state == SuperstructureState.NET ? GripperGoal.NET_EJECT :
@@ -115,7 +116,16 @@ public class Superstructure extends SubsystemBase {
   }
 
   public void ejectCoral() {
-    beak.setRollerGoal(RollerGoal.EJECT);
+    beak.startEjectTimer();               // -----------------------------------
+    beak.setRollerGoal(RollerGoal.EJECT); // Swapped the order of these two lines
+  }
+
+  public void sendBeakHome() {
+    beak.setGoal(() -> Rotation2d.fromDegrees(0.0));
+  }
+
+  public void sendBeakToMax() {
+    beak.setGoal(() -> Rotation2d.fromDegrees(-180.0));
   }
   // public void ejectCoral() {
   //   beak.setRollerGoal(state == SuperstructureState.L1_CORAL ? RollerGoal.L1_EJECT :

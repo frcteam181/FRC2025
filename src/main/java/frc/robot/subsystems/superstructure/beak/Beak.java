@@ -30,8 +30,8 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Beak {
-  public static final Rotation2d minPivotAngle = new Rotation2d(0.0);
-  public static final Rotation2d maxPivotAngle = new Rotation2d(0.0);
+  public static final Rotation2d minPivotAngle = Rotation2d.fromDegrees(-180.0);
+  public static final Rotation2d maxPivotAngle = Rotation2d.fromDegrees(0.0);
 
   // Pivot Tuner
   private static final LoggedTunableNumber kP = new LoggedTunableNumber("Beak/Pivot/kP");
@@ -56,18 +56,22 @@ public class Beak {
       new LoggedTunableNumber("Beak/Characterization/StaticRampRate", 0.0);
 
   // Roller Tuner
-  private static final LoggedTunableNumber coralVelocityThresh =
-      new LoggedTunableNumber("Beak/Roller/CoralVelocityThreshold", 0.0);
-  public static final LoggedTunableNumber rollerHoldVolts =
-      new LoggedTunableNumber("Beak/Roller/HoldVolts", 0.0);
   public static final LoggedTunableNumber rollerIntakeVolts =
-      new LoggedTunableNumber("Beak/Roller/IntakeVolts", 0.0);
+      new LoggedTunableNumber("Beak/Roller/IntakeVolts", 4.0);
+  public static final LoggedTunableNumber rollerHoldVolts =
+      new LoggedTunableNumber("Beak/Roller/HoldVolts", 0.1);
+  private static final LoggedTunableNumber coralVelocityThresh =
+      new LoggedTunableNumber("Beak/Roller/CoralVelocityThreshold", 0.2);
   public static final LoggedTunableNumber rollerEjectVolts =
-      new LoggedTunableNumber("Beak/Roller/EjectVolts", 0.0);
+      new LoggedTunableNumber("Beak/Roller/EjectVolts", -3.0);
   public static final LoggedTunableNumber rollerL1EjectVolts =
-      new LoggedTunableNumber("Beak/Roller/L1EjectVolts", 0.0);
+      new LoggedTunableNumber("Beak/Roller/L1EjectVolts", -1.0);
   public static final LoggedTunableNumber rollerCurrentLimit =
-      new LoggedTunableNumber("Beak/Roller/CurrentLimit", 0.0);
+      new LoggedTunableNumber("Beak/Roller/CurrentLimit", 50.0);
+  public static final LoggedTunableNumber ejectTime =
+      new LoggedTunableNumber("Beak/Roller/EjectTime", 0.2);
+
+  private final Timer ejectTimer = new Timer();
 
   // Homing Tuner
   public static final LoggedTunableNumber homingTimeSecs =
@@ -231,7 +235,7 @@ public class Beak {
               .calculate(Constants.loopPeriodSecs, pivotSetpoint, pivotGoalState);
       beakIO.runPosition(
           Rotation2d.fromRadians(
-              pivotSetpoint.position - maxPivotAngle.getRadians() + homingOffset.getRadians()),
+              pivotSetpoint.position), // - maxPivotAngle.getRadians() + homingOffset.getRadians()),
           kS.get() * Math.signum(pivotSetpoint.velocity) // Magnitude irrelevant
               + kG.get() * getPivotAngle().getCos());
       // Check at goal
@@ -243,6 +247,14 @@ public class Beak {
       Logger.recordOutput("Beak/Pivot/Profile/SetpointAngle", pivotSetpoint.position);
       Logger.recordOutput("Beak/Pivot/Profile/SetpointVelocity", pivotSetpoint.velocity);
       Logger.recordOutput("Beak/Pivot/Profile/GoalAngleRad", pivotGoalState.position);
+
+      // Log state in Deg
+      Logger.recordOutput(
+          "Beak/Pivot/Profile/SetpointAngleDeg", Math.toDegrees(pivotSetpoint.position));
+      Logger.recordOutput(
+          "Beak/Pivot/Profile/SetpointVelocityDeg", Math.toDegrees(pivotSetpoint.velocity));
+      Logger.recordOutput(
+          "Beak/Pivot/Profile/GoalAngleDeg", Math.toDegrees(pivotGoalState.position));
     } else {
       // Reset position
       pivotSetpoint = new State(getPivotAngle().getRadians(), 0.0);
@@ -251,6 +263,11 @@ public class Beak {
       Logger.recordOutput("Beak/Pivot/Profile/SetpointAngle", 0.0);
       Logger.recordOutput("Beak/Pivot/Profile/SetpointVelocity", 0.0);
       Logger.recordOutput("Beak/Pivot/Profile/GoalAngleRad", 0.0);
+
+      // Clear log in Deg
+      Logger.recordOutput("Beak/Pivot/Profile/SetpointAngleDeg", 0.0);
+      Logger.recordOutput("Beak/Pivot/Profile/SetpointVelocityDeg", 0.0);
+      Logger.recordOutput("Beak/Pivot/Profile/GoalAngleDeg", 0.0);
     }
 
     // Run roller
@@ -276,15 +293,26 @@ public class Beak {
         case EJECT -> {
           if (hasCoral) {
             rollerIO.runVolts(rollerEjectVolts.get());
+            ejectTimer.start();
           } else {
-            setRollerGoal(RollerGoal.IDLE); // Might need to add a timer before switching to IDLE
+            rollerIO.runVolts(rollerEjectVolts.get());
+            if (ejectTimer.hasElapsed(ejectTime.get())) {
+              ejectTimer.stop();
+              ejectTimer.reset();
+              setRollerGoal(RollerGoal.IDLE);
+            }
           }
         }
         case L1_EJECT -> {
           if (hasCoral) {
             rollerIO.runVolts(rollerL1EjectVolts.get());
           } else {
-            setRollerGoal(RollerGoal.IDLE); // Might need to add a timer before switching to IDLE
+            rollerIO.runVolts(rollerL1EjectVolts.get());
+            if (ejectTimer.hasElapsed(ejectTime.get())) {
+              ejectTimer.stop();
+              ejectTimer.reset();
+              setRollerGoal(RollerGoal.IDLE);
+            }
           }
         }
       }
@@ -339,13 +367,17 @@ public class Beak {
 
   @AutoLogOutput(key = "Beak/Pivot/MeasuredAngle")
   public Rotation2d getPivotAngle() {
-    return beakInputs.data.positionRad().plus(maxPivotAngle).minus(homingOffset);
+    return beakInputs.data.positionRad(); // .plus(maxPivotAngle).minus(homingOffset);
   }
 
   public void resetHasCoral() {
     hasCoral = false;
     coralDebouncer = new Debouncer(coralDebounceTime, DebounceType.kRising);
     coralDebouncer.calculate(false);
+  }
+
+  public void startEjectTimer() {
+    ejectTimer.start();
   }
 
   public void setOverrides(

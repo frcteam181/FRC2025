@@ -63,9 +63,9 @@ public class ExtenderIOTalonFX implements ExtenderIO {
     encoder = new CANcoder(29, "rio");
 
     // Configure CANCoder
-    canConfig.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.65));
+    canConfig.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.4));
     canConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-    canConfig.MagnetSensor.withMagnetOffset(Rotations.of(0.2));
+    canConfig.MagnetSensor.withMagnetOffset(Rotations.of(0.364));
     encoder.getConfigurator().apply(canConfig);
 
     // Configure motor

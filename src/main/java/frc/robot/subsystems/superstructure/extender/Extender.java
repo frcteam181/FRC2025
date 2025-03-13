@@ -30,8 +30,8 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Extender {
-  public static final Rotation2d minPivotAngle = new Rotation2d(-35.0);
-  public static final Rotation2d maxPivotAngle = new Rotation2d(90.0);
+  public static final Rotation2d minPivotAngle = Rotation2d.fromDegrees(-10.0);
+  public static final Rotation2d maxPivotAngle = Rotation2d.fromDegrees(90.0);
 
   // Tunable numbers
 
@@ -59,17 +59,21 @@ public class Extender {
 
   // Gripper Tuning
   private static final LoggedTunableNumber algaeVelocityThresh =
-      new LoggedTunableNumber("Extender/Gripper/AlgaeVelocityThreshold", 0.0);
+      new LoggedTunableNumber("Extender/Gripper/AlgaeVelocityThreshold", 10.0);
   public static final LoggedTunableNumber gripperHoldVolts =
-      new LoggedTunableNumber("Extender/Gripper/HoldVolts", 2.0);
+      new LoggedTunableNumber("Extender/Gripper/HoldVolts", 0.5);
   public static final LoggedTunableNumber gripperIntakeVolts =
-      new LoggedTunableNumber("Extender/Gripper/IntakeVolts", 2.0);
+      new LoggedTunableNumber("Extender/Gripper/IntakeVolts", 8.0);
   public static final LoggedTunableNumber gripperEjectVolts =
-      new LoggedTunableNumber("Extender/Gripper/EjectVolts", -2.0);
+      new LoggedTunableNumber("Extender/Gripper/EjectVolts", -9.0);
   public static final LoggedTunableNumber gripperNetEjectVolts =
       new LoggedTunableNumber("Extender/Gripper/L1EjectVolts", -2.0);
   public static final LoggedTunableNumber gripperCurrentLimit =
       new LoggedTunableNumber("Extender/Gripper/CurrentLimit", 50.0);
+  public static final LoggedTunableNumber ejectTime =
+      new LoggedTunableNumber("Extender/Gripper/EjectTime", 0.3);
+
+  private final Timer ejectTimer = new Timer();
 
   // Homing Tuning
   public static final LoggedTunableNumber homingPivotTimeSecs =
@@ -232,8 +236,7 @@ public class Extender {
           (hasAlgae() ? algaeProfile : pivotProfile)
               .calculate(Constants.loopPeriodSecs, pivotSetpoint, pivotGoalState);
       extenderIO.runPosition(
-          Rotation2d.fromRadians(
-              pivotSetpoint.position - maxPivotAngle.getRadians() + homingOffset.getRadians()),
+          Rotation2d.fromRadians(pivotSetpoint.position),
           kS.get() * Math.signum(pivotSetpoint.velocity) // Magnitude irrelevant
               + kG.get() * getPivotAngle().getCos());
       // Check at goal
@@ -245,6 +248,13 @@ public class Extender {
       Logger.recordOutput("Extender/Pivot/Profile/SetpointAngle", pivotSetpoint.position);
       Logger.recordOutput("Extender/Pivot/Profile/SetpointVelocity", pivotSetpoint.velocity);
       Logger.recordOutput("Extender/Pivot/Profile/GoalAngleRad", pivotGoalState.position);
+      // Log states in Deg
+      Logger.recordOutput(
+          "Extender/Pivot/Profile/SetpointAngleDeg", Math.toDegrees(pivotSetpoint.position));
+      Logger.recordOutput(
+          "Extender/Pivot/Profile/SetpointVelocityDeg", Math.toDegrees(pivotSetpoint.velocity));
+      Logger.recordOutput(
+          "Extender/Pivot/Profile/GoalAngleDeg", Math.toDegrees(pivotGoalState.position));
     } else {
       // Reset position
       pivotSetpoint = new State(getPivotAngle().getRadians(), 0.0);
@@ -253,6 +263,10 @@ public class Extender {
       Logger.recordOutput("Extender/Pivot/Profile/SetpointAngle", 0.0);
       Logger.recordOutput("Extender/Pivot/Profile/SetpointVelocity", 0.0);
       Logger.recordOutput("Extender/Pivot/Profile/GoalAngleRad", 0.0);
+      // Clear Deg Logs
+      Logger.recordOutput("Extender/Pivot/Profile/SetpointAngleDeg", 0.0);
+      Logger.recordOutput("Extender/Pivot/Profile/SetpointVelocityDeg", 0.0);
+      Logger.recordOutput("Extender/Pivot/Profile/GoalAngleDeg", 0.0);
     }
 
     // Run gripper
@@ -279,14 +293,21 @@ public class Extender {
           if (hasAlgae) {
             gripperIO.runVolts(gripperEjectVolts.get());
           } else {
-            setGripperGoal(GripperGoal.IDLE); // Might need to add a timer before switching to IDLE
+            if (ejectTimer.hasElapsed(ejectTime.get())) {
+              ejectTimer.stop();
+              setGripperGoal(GripperGoal.IDLE);
+            }
           }
         }
         case NET_EJECT -> {
           if (hasAlgae) {
             gripperIO.runVolts(gripperNetEjectVolts.get());
           } else {
-            setGripperGoal(GripperGoal.IDLE); // Might need to add a timer before switching to IDLE
+            gripperIO.runVolts(gripperNetEjectVolts.get());
+            if (ejectTimer.hasElapsed(ejectTime.get())) {
+              ejectTimer.stop();
+              setGripperGoal(GripperGoal.IDLE);
+            }
           }
         }
       }
@@ -329,6 +350,11 @@ public class Extender {
     return pivotGoal.getAsDouble();
   }
 
+  public void startEjectTimer() {
+    ejectTimer.reset();
+    ejectTimer.start();
+  }
+
   @AutoLogOutput
   public boolean hasAlgae() {
     return hasAlgae && !disableGamePieceDetectionOverride.getAsBoolean();
@@ -342,11 +368,6 @@ public class Extender {
   @AutoLogOutput(key = "Extender/Pivot/MeasuredAngleDeg")
   public double getPivotAngleDeg() {
     return extenderInputs.data.motorPosition().getDegrees();
-  }
-
-  @AutoLogOutput(key = "Extender/Pivot/MeasuredAlteredAngleDeg")
-  public double getPivotAngleAlteredDeg() {
-    return extenderInputs.data.motorPosition().getDegrees() + homingOffset.getDegrees();
   }
 
   public void resetHasAlgae() {

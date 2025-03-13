@@ -27,7 +27,6 @@
             "/AdvantageKit/RealOutputs/Extender/Pivot/Profile",
             "/AdvantageKit/RealOutputs/Extender/Pivot/MeasuredAngleR2d",
             "/Tuning/Extender/Pivot",
-            "/AdvantageKit/Extender",
             "/AdvantageKit/Extender/PivotHardwareReadOuts",
             "/AdvantageKit/Extender/PivotHardwareReadOuts/Data",
             "/AdvantageKit/Extender/PivotHardwareReadOuts/Data/motorPosition",
@@ -35,7 +34,10 @@
             "/Tuning/Beak/Pivot",
             "/AdvantageKit/RealOutputs/Beak",
             "/AdvantageKit/RealOutputs/Beak/Pivot",
-            "/AdvantageKit/RealOutputs/Beak/Pivot/Profile"
+            "/AdvantageKit/RealOutputs/Beak/Pivot/Profile",
+            "/AdvantageKit/Beak",
+            "/AdvantageKit/Beak/PivotHardwareReadouts",
+            "/AdvantageKit/Beak/PivotHardwareReadouts/Data"
           ]
         },
         "tabs": {
@@ -56,7 +58,7 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Extender/Pivot/Profile/GoalAngleDeg",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Beak/Pivot/Profile/GoalAngleDeg",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -66,7 +68,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Extender/Pivot/Profile/SetpointAngleDeg",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Beak/Pivot/Profile/SetpointAngleDeg",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -76,7 +78,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Extender/Pivot/MeasuredAngleDeg",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Beak/Pivot/MeasuredAngleDeg",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -88,7 +90,7 @@
                 "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Extender/PivotHardwareReadOuts/Data/motorAppliedVolts",
+                    "logKey": "NT:/AdvantageKit/Beak/PivotHardwareReadouts/Data/appliedVolts",
                     "logType": "Number",
                     "visible": true,
                     "options": {

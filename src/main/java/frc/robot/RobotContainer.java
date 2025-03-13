@@ -179,16 +179,29 @@ public class RobotContainer {
             () -> -operator.getLeftX()));
 
     // Operator controls
+
+    // Game piece manipulation
     operator
         .rightBumper()
         .whileTrue(Commands.run(superstructure::startManipulatingGamePieces, superstructure))
         .onFalse(Commands.run(superstructure::stopManipulatingGamePieces, superstructure));
+        
     operator.leftBumper().onTrue(Commands.run(superstructure::ejectCoral, superstructure));
     operator.leftTrigger().onTrue(Commands.run(superstructure::ejectAlgae, superstructure));
+
+    // Elevator
     // operator.a().onTrue(Commands.runOnce(superstructure::sendElevatorHome, superstructure));
     // operator.y().onTrue(Commands.runOnce(superstructure::sendElevatorToPercent, superstructure));
     // operator.x().onTrue(superstructure.homeElevator());
     // operator.b().onTrue(superstructure.homeExtender());
+
+    // Extender
+    // operator.y().onTrue(Commands.runOnce(superstructure::sendExtenderHome, superstructure));
+    // operator.b().onTrue(Commands.runOnce(superstructure::sendExtenderToHor, superstructure));
+
+    // Beak
+    operator.y().onTrue(Commands.runOnce(superstructure::sendBeakHome, superstructure));
+    operator.b().onTrue(Commands.runOnce(superstructure::sendBeakToMax, superstructure));
   }
 
   // Creates controller rumble command

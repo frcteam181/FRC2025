@@ -66,9 +66,9 @@ public class BeakIOMinion implements BeakIO {
     config.ExternalFeedback.FeedbackRemoteSensorID = encoder.getDeviceID();
     config.ExternalFeedback.ExternalFeedbackSensorSource =
         ExternalFeedbackSensorSourceValue.FusedCANcoder;
-    canConfig.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.5));
-    canConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-    canConfig.MagnetSensor.withMagnetOffset(Rotations.of(0.09));
+    canConfig.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.3));
+    canConfig.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
+    canConfig.MagnetSensor.withMagnetOffset(Rotations.of(-0.111));
     encoder.getConfigurator().apply(canConfig);
 
     // Configure motor
