@@ -69,7 +69,7 @@ public class Superstructure extends SubsystemBase {
   }
 
   public void sendElevatorToPercent() {
-    elevator.setGoal(() -> new State((ElevatorConstants.maxTravel * 0.95), 0.0));
+    elevator.setGoal(() -> new State((ElevatorConstants.maxTravel * 0.25), 0.0));
   }
 
   public Command homeElevator() {
@@ -98,7 +98,7 @@ public class Superstructure extends SubsystemBase {
   }
 
   public void ejectAlgae() {
-    extender.startEjectTimer();                 // -----------------------------------
+    extender.startEjectTimer(); // -----------------------------------
     extender.setGripperGoal(GripperGoal.EJECT); // Swapped the order of these two lines
   }
   // public void ejectAlgae() {
@@ -116,7 +116,7 @@ public class Superstructure extends SubsystemBase {
   }
 
   public void ejectCoral() {
-    beak.startEjectTimer();               // -----------------------------------
+    beak.startEjectTimer(); // -----------------------------------
     beak.setRollerGoal(RollerGoal.EJECT); // Swapped the order of these two lines
   }
 
@@ -127,6 +127,10 @@ public class Superstructure extends SubsystemBase {
   public void sendBeakToMax() {
     beak.setGoal(() -> Rotation2d.fromDegrees(-180.0));
   }
+
+  public void runBeakPivotOpenLoop(double output) {
+    beak.runPivotOpenLoop(output);
+  }
   // public void ejectCoral() {
   //   beak.setRollerGoal(state == SuperstructureState.L1_CORAL ? RollerGoal.L1_EJECT :
   // RollerGoal.EJECT);
@@ -135,7 +139,7 @@ public class Superstructure extends SubsystemBase {
   // Superstructure Methods
   public void startManipulatingGamePieces() {
     startManipulatingAlgae();
-    startManipulatingCoral();
+    // startManipulatingCoral();
   }
 
   public void stopManipulatingGamePieces() {

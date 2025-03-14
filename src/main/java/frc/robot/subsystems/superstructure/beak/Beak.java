@@ -345,7 +345,12 @@ public class Beak {
 
   @AutoLogOutput(key = "Beak/Pivot/MeasuredAngleDeg")
   public double getMeasuredAngleDeg() {
-    return beakInputs.data.positionRad().getDegrees();
+    return beakInputs.data.motorPosition().getDegrees();
+  }
+
+  @AutoLogOutput(key = "Beak/Pivot/MeasuredVelocityDeg")
+  public double getMeasuredVelocityDeg() {
+    return Math.toDegrees(beakInputs.data.motorVelocityRadPerSec());
   }
 
   public void setGoal(Supplier<Rotation2d> pivotGoal) {
@@ -367,7 +372,7 @@ public class Beak {
 
   @AutoLogOutput(key = "Beak/Pivot/MeasuredAngle")
   public Rotation2d getPivotAngle() {
-    return beakInputs.data.positionRad(); // .plus(maxPivotAngle).minus(homingOffset);
+    return beakInputs.data.motorPosition(); // .plus(maxPivotAngle).minus(homingOffset);
   }
 
   public void resetHasCoral() {
@@ -418,11 +423,11 @@ public class Beak {
                     Commands.waitUntil(
                         () ->
                             homingDebouncer.calculate(
-                                Math.abs(beakInputs.data.velocityRadPerSec())
+                                Math.abs(beakInputs.data.motorVelocityRadPerSec())
                                     <= homingVelocityThresh.get()))))
         .andThen(
             () -> {
-              homingOffset = beakInputs.data.positionRad();
+              homingOffset = beakInputs.data.motorPosition();
             })
         .finallyDo(
             () -> {
@@ -447,7 +452,7 @@ public class Beak {
             })
         .until(
             () ->
-                beakInputs.data.velocityRadPerSec()
+                beakInputs.data.motorVelocityRadPerSec()
                     >= staticPivotCharacterizationVelocityThresh.get())
         .andThen(beakIO::stop)
         .andThen(Commands.idle())
@@ -457,6 +462,10 @@ public class Beak {
               timer.stop();
               Logger.recordOutput("Beak/CharacterizationOutput", state.characterizationOutput);
             });
+  }
+
+  public void runPivotOpenLoop(double output) {
+    beakIO.runVolts(output);
   }
 
   private static class StaticCharacterizationState {

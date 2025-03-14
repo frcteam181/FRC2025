@@ -1,12 +1,11 @@
 package frc.robot.subsystems.superstructure;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
 
 public enum SuperstructurePose {
   START(0.0, Rotation2d.kZero, Rotation2d.kZero),
   AUTO_START(0.0, Rotation2d.kZero, Rotation2d.kZero),
-  STOW(0.0, Rotation2d.fromDegrees(Units.degreesToRadians((20.0))), Rotation2d.kZero),
+  STOW(0.0, Rotation2d.fromDegrees(20.0), Rotation2d.kZero),
   L1_CORAL(0.0, Rotation2d.kZero, Rotation2d.kZero),
   L2_CORAL(0.0, Rotation2d.kZero, Rotation2d.kZero),
   L3_CORAL(0.0, Rotation2d.kZero, Rotation2d.kZero),

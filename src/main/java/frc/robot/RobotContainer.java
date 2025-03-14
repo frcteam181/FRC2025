@@ -1,6 +1,7 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Alert;
@@ -33,7 +34,6 @@ import frc.robot.subsystems.superstructure.elevator.ElevatorIOTalonFX;
 import frc.robot.subsystems.superstructure.extender.Extender;
 import frc.robot.subsystems.superstructure.extender.ExtenderIOTalonFX;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -54,10 +54,10 @@ public class RobotContainer {
       new Alert("Driver controller disconnected (port 0).", AlertType.kWarning);
   private final Alert operatorDisconnected =
       new Alert("Operator controller disconnected (port 1).", AlertType.kWarning);
-  private final LoggedNetworkNumber endgameAlert1 =
-      new LoggedNetworkNumber("/SmartDashboard/Endgame Alert #1", 30.0);
-  private final LoggedNetworkNumber endgameAlert2 =
-      new LoggedNetworkNumber("/SmartDashboard/Endgame Alert #2", 15.0);
+  // private final LoggedNetworkNumber endgameAlert1 =
+  //     new LoggedNetworkNumber("/SmartDashboard/Endgame Alert #1", 30.0);
+  // private final LoggedNetworkNumber endgameAlert2 =
+  //     new LoggedNetworkNumber("/SmartDashboard/Endgame Alert #2", 15.0);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -117,6 +117,8 @@ public class RobotContainer {
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
+
+    NamedCommands.registerCommand("HomeE", elevator.homingSequence());
 
     // Set up SysId routines
     autoChooser.addOption(
@@ -181,27 +183,31 @@ public class RobotContainer {
     // Operator controls
 
     // Game piece manipulation
-    operator
-        .rightBumper()
-        .whileTrue(Commands.run(superstructure::startManipulatingGamePieces, superstructure))
-        .onFalse(Commands.run(superstructure::stopManipulatingGamePieces, superstructure));
-        
-    operator.leftBumper().onTrue(Commands.run(superstructure::ejectCoral, superstructure));
-    operator.leftTrigger().onTrue(Commands.run(superstructure::ejectAlgae, superstructure));
+    // operator
+    //     .rightBumper()
+    //     .whileTrue(Commands.run(superstructure::startManipulatingGamePieces, superstructure))
+    //     .onFalse(Commands.run(superstructure::stopManipulatingGamePieces, superstructure));
 
-    // Elevator
-    // operator.a().onTrue(Commands.runOnce(superstructure::sendElevatorHome, superstructure));
-    // operator.y().onTrue(Commands.runOnce(superstructure::sendElevatorToPercent, superstructure));
-    // operator.x().onTrue(superstructure.homeElevator());
+    // operator.leftBumper().onTrue(Commands.run(superstructure::ejectCoral, superstructure));
+    // operator.leftTrigger().onTrue(Commands.run(superstructure::ejectAlgae, superstructure));
+
+    // // Elevator
+    operator.a().onTrue(Commands.runOnce(superstructure::sendElevatorHome, superstructure));
+    operator.y().onTrue(Commands.runOnce(superstructure::sendElevatorToPercent, superstructure));
+    operator.x().onTrue(superstructure.homeElevator());
     // operator.b().onTrue(superstructure.homeExtender());
 
     // Extender
-    // operator.y().onTrue(Commands.runOnce(superstructure::sendExtenderHome, superstructure));
-    // operator.b().onTrue(Commands.runOnce(superstructure::sendExtenderToHor, superstructure));
+    operator
+        .leftBumper()
+        .onTrue(Commands.runOnce(superstructure::sendExtenderHome, superstructure));
+    operator
+        .rightBumper()
+        .onTrue(Commands.runOnce(superstructure::sendExtenderToHor, superstructure));
 
     // Beak
-    operator.y().onTrue(Commands.runOnce(superstructure::sendBeakHome, superstructure));
-    operator.b().onTrue(Commands.runOnce(superstructure::sendBeakToMax, superstructure));
+    // operator.y().onTrue(Commands.runOnce(superstructure::sendBeakHome, superstructure));
+    // operator.b().onTrue(Commands.runOnce(superstructure::sendBeakToMax, superstructure));
   }
 
   // Creates controller rumble command
@@ -234,6 +240,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
+    // return AutoBuilder.followPath(PathPlannerPath.fromPathFile("Just Park"));
     return autoChooser.get();
   }
 }

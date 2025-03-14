@@ -8,19 +8,17 @@ public interface BeakIO {
   // Holds sensor inputs
   @AutoLog
   class PivotIOInputs {
-    public PivotIOData data =
-        new PivotIOData(false, false, Rotation2d.kZero, 0.0, 0.0, 0.0, 0.0, 0.0);
+    public PivotIOData data = new PivotIOData(false, Rotation2d.kZero, 0.0, 0.0, 0.0, 0.0, 0.0);
   }
 
   record PivotIOData(
       boolean motorConnected,
-      boolean encoderConnected,
-      Rotation2d positionRad,
-      double velocityRadPerSec,
-      double appliedVolts,
-      double torqueCurrent,
-      double supplyCurrent,
-      double tempCelsius) {}
+      Rotation2d motorPosition,
+      double motorVelocityRadPerSec,
+      double motorAppliedVolts,
+      double motorSupplyCurrentAmps,
+      double motorTorqueCurrentAmps,
+      double motorTempCelcius) {}
 
   default void updateInputs(PivotIOInputs inputs) {}
 

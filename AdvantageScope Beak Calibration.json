@@ -3,8 +3,8 @@
     {
       "x": -8,
       "y": -8,
-      "width": 1536,
-      "height": 824,
+      "width": 1552,
+      "height": 840,
       "state": {
         "sidebar": {
           "width": 437,
@@ -41,7 +41,7 @@
           ]
         },
         "tabs": {
-          "selected": 1,
+          "selected": 2,
           "tabs": [
             {
               "type": 0,
@@ -90,7 +90,7 @@
                 "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Beak/PivotHardwareReadouts/Data/appliedVolts",
+                    "logKey": "NT:/AdvantageKit/Beak/PivotHardwareReadouts/Data/motorAppliedVolts",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -114,6 +114,51 @@
                 "rightFilter": 0
               },
               "controllerUUID": "po4crlx5egnvp74dsg77bulwcr5peo8i",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "Velocity Tuning",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Beak/Pivot/Profile/SetpointVelocityDeg",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Beak/Pivot/MeasuredVelocityDeg",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "ixitqmmss5psygufjo360ay9j0kwcv7n",
               "renderer": null,
               "controlsHeight": 200
             }

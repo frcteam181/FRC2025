@@ -86,10 +86,10 @@ public class Extender {
   static {
     switch (Constants.getRobot()) {
       case COMPBOT, DEVBOT -> {
-        kP.initDefault(0.0);
-        kD.initDefault(0.0);
-        kS.initDefault(0.0);
-        kG.initDefault(0.0);
+        kP.initDefault(900.0);
+        kD.initDefault(100.0);
+        kS.initDefault(7.0);
+        kG.initDefault(15.0);
       }
       case SIMBOT -> {
         kP.initDefault(4000);

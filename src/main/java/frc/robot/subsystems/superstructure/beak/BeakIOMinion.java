@@ -41,12 +41,12 @@ public class BeakIOMinion implements BeakIO {
   private final CANcoderConfiguration canConfig = new CANcoderConfiguration();
 
   // Status Signals
-  private final StatusSignal<Angle> absPosition;
-  private final StatusSignal<AngularVelocity> velocity;
-  private final StatusSignal<Voltage> appliedVolts;
-  private final StatusSignal<Current> torqueCurrent;
-  private final StatusSignal<Current> supplyCurrent;
-  private final StatusSignal<Temperature> temp;
+  private final StatusSignal<Angle> pivotPosition;
+  private final StatusSignal<AngularVelocity> pivotVelocity;
+  private final StatusSignal<Voltage> pivotAppliedVolts;
+  private final StatusSignal<Current> pivotSupplyCurrentAmps;
+  private final StatusSignal<Current> pivotTorqueCurrentAmps;
+  private final StatusSignal<Temperature> pivotTemp;
 
   // Cotrol Requests
   private final TorqueCurrentFOC torqueCurrentFOC = new TorqueCurrentFOC(0.0).withUpdateFreqHz(0.0);
@@ -55,17 +55,13 @@ public class BeakIOMinion implements BeakIO {
   private final VoltageOut voltageRequest = new VoltageOut(0.0).withUpdateFreqHz(0.0);
 
   // Connection debouncers
-  private final Debouncer motorConnectedDebounce = new Debouncer(0.5);
-  private final Debouncer encoderConnectedDebounce = new Debouncer(0.5);
+  private final Debouncer motorConnectedDebouncer = new Debouncer(0.5);
 
   public BeakIOMinion() {
     motor = new TalonFXS(3, "rio");
     encoder = new CANcoder(30, "rio");
 
     // Configure CANCoder
-    config.ExternalFeedback.FeedbackRemoteSensorID = encoder.getDeviceID();
-    config.ExternalFeedback.ExternalFeedbackSensorSource =
-        ExternalFeedbackSensorSourceValue.FusedCANcoder;
     canConfig.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.3));
     canConfig.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
     canConfig.MagnetSensor.withMagnetOffset(Rotations.of(-0.111));
@@ -80,39 +76,59 @@ public class BeakIOMinion implements BeakIO {
     config.Slot0 = new Slot0Configs().withKP(0.0).withKI(0.0).withKD(0.0);
     config.ExternalFeedback.SensorToMechanismRatio = 1.0;
     config.ExternalFeedback.RotorToSensorRatio = 5.0;
+    config.CurrentLimits.SupplyCurrentLimit = 50;
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    motor.getConfigurator().apply(config);
     tryUntilOk(5, () -> motor.getConfigurator().apply(config, 0.25));
 
     // Get and set status signals
-    absPosition = motor.getPosition();
-    velocity = motor.getVelocity();
-    appliedVolts = motor.getMotorVoltage();
-    torqueCurrent = motor.getTorqueCurrent();
-    supplyCurrent = motor.getSupplyCurrent();
-    temp = motor.getDeviceTemp();
+    pivotPosition = motor.getPosition();
+    pivotVelocity = motor.getVelocity();
+    pivotAppliedVolts = motor.getMotorVoltage();
+    pivotSupplyCurrentAmps = motor.getSupplyCurrent();
+    pivotTorqueCurrentAmps = motor.getTorqueCurrent();
+    pivotTemp = motor.getDeviceTemp();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
-        50.0, absPosition, velocity, appliedVolts, torqueCurrent, supplyCurrent, temp);
+        50.0,
+        pivotPosition,
+        pivotVelocity,
+        pivotAppliedVolts,
+        pivotSupplyCurrentAmps,
+        pivotTorqueCurrentAmps,
+        pivotTemp);
     motor.optimizeBusUtilization();
 
     // Register signals for refresh
     PhoenixUtil.registerSignals(
-        false, absPosition, velocity, appliedVolts, torqueCurrent, supplyCurrent, temp);
+        false,
+        pivotPosition,
+        pivotVelocity,
+        pivotAppliedVolts,
+        pivotSupplyCurrentAmps,
+        pivotTorqueCurrentAmps,
+        pivotTemp);
   }
 
   @Override
   public void updateInputs(PivotIOInputs inputs) {
     inputs.data =
         new PivotIOData(
-            motorConnectedDebounce.calculate(BaseStatusSignal.isAllGood(appliedVolts, temp)),
-            encoderConnectedDebounce.calculate(BaseStatusSignal.isAllGood(absPosition, velocity)),
-            Rotation2d.fromRotations(absPosition.getValueAsDouble()),
-            velocity.getValue().in(RadiansPerSecond),
-            appliedVolts.getValue().in(Volts),
-            torqueCurrent.getValue().in(Amps),
-            supplyCurrent.getValue().in(Amps),
-            temp.getValue().in(Celsius));
+            motorConnectedDebouncer.calculate(
+                BaseStatusSignal.isAllGood(
+                    pivotPosition,
+                    pivotVelocity,
+                    pivotAppliedVolts,
+                    pivotSupplyCurrentAmps,
+                    pivotTorqueCurrentAmps,
+                    pivotTemp)),
+            Rotation2d.fromRotations(pivotPosition.getValueAsDouble()),
+            pivotVelocity.getValue().in(RadiansPerSecond),
+            pivotAppliedVolts.getValue().in(Volts),
+            pivotSupplyCurrentAmps.getValue().in(Amps),
+            pivotTorqueCurrentAmps.getValue().in(Amps),
+            pivotTemp.getValue().in(Celsius));
   }
 
   @Override
