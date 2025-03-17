@@ -5,9 +5,22 @@
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "Just Park"
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Home Elevator"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Just Park"
+                }
+              }
+            ]
           }
         }
       ]
