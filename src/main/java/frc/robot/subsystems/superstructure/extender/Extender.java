@@ -41,13 +41,13 @@ public class Extender {
   private static final LoggedTunableNumber kS = new LoggedTunableNumber("Extender/Pivot/kS");
   private static final LoggedTunableNumber kG = new LoggedTunableNumber("Extender/Pivot/kG");
   private static final LoggedTunableNumber maxPivotVelocityDegPerSec =
-      new LoggedTunableNumber("Extender/Pivot/MaxVelocityDegreesPerSec", 0.0);
+      new LoggedTunableNumber("Extender/Pivot/MaxVelocityDegreesPerSec", 150.0);
   private static final LoggedTunableNumber maxPivotAccelerationDegPerSec2 =
-      new LoggedTunableNumber("Extender/Pivot/MaxAccelerationDegreesPerSec2", 0.0);
+      new LoggedTunableNumber("Extender/Pivot/MaxAccelerationDegreesPerSec2", 200.0);
   private static final LoggedTunableNumber algaePivotMaxVelocityDegPerSec =
-      new LoggedTunableNumber("Extender/Pivot/AlgaeMaxVelocityDegreesPerSec", 0.0);
+      new LoggedTunableNumber("Extender/Pivot/AlgaeMaxVelocityDegreesPerSec", 150.0);
   private static final LoggedTunableNumber algaePivotMaxAccelerationDegPerSec2 =
-      new LoggedTunableNumber("Extender/Pivot/AlgaeMaxAccelerationDegreesPerSec2", 0.0);
+      new LoggedTunableNumber("Extender/Pivot/AlgaeMaxAccelerationDegreesPerSec2", 200.0);
   public static final LoggedTunableNumber pivotTolerance =
       new LoggedTunableNumber("Extender/Pivot/Tolerance", 0.4);
 
@@ -63,7 +63,7 @@ public class Extender {
   public static final LoggedTunableNumber gripperHoldVolts =
       new LoggedTunableNumber("Extender/Gripper/HoldVolts", 0.5);
   public static final LoggedTunableNumber gripperIntakeVolts =
-      new LoggedTunableNumber("Extender/Gripper/IntakeVolts", 8.0);
+      new LoggedTunableNumber("Extender/Gripper/IntakeVolts", 8.5);
   public static final LoggedTunableNumber gripperEjectVolts =
       new LoggedTunableNumber("Extender/Gripper/EjectVolts", -9.0);
   public static final LoggedTunableNumber gripperNetEjectVolts =
@@ -127,7 +127,7 @@ public class Extender {
   private TrapezoidProfile pivotProfile;
   private TrapezoidProfile algaeProfile;
   @Getter private State pivotSetpoint = new State();
-  private DoubleSupplier pivotGoal = () -> 0.0;
+  private DoubleSupplier pivotGoal = () -> 90.0;
   private boolean stopProfile = false;
   @Getter private boolean shouldEStop = false;
   @Getter private boolean isEStopped = false;
@@ -295,6 +295,7 @@ public class Extender {
           } else {
             if (ejectTimer.hasElapsed(ejectTime.get())) {
               ejectTimer.stop();
+              ejectTimer.reset();
               setGripperGoal(GripperGoal.IDLE);
             }
           }

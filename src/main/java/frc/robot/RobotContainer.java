@@ -118,7 +118,7 @@ public class RobotContainer {
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
-    NamedCommands.registerCommand("HomeE", elevator.homingSequence());
+    NamedCommands.registerCommand("Home Elevator", elevator.homingSequence());
 
     // Set up SysId routines
     autoChooser.addOption(
@@ -183,27 +183,34 @@ public class RobotContainer {
     // Operator controls
 
     // Game piece manipulation
-    // operator
-    //     .rightBumper()
-    //     .whileTrue(Commands.run(superstructure::startManipulatingGamePieces, superstructure))
-    //     .onFalse(Commands.run(superstructure::stopManipulatingGamePieces, superstructure));
+    operator
+        .rightBumper()
+        .whileTrue(Commands.run(superstructure::startManipulatingGamePieces, superstructure))
+        .onFalse(Commands.run(superstructure::stopManipulatingGamePieces, superstructure));
 
-    // operator.leftBumper().onTrue(Commands.run(superstructure::ejectCoral, superstructure));
-    // operator.leftTrigger().onTrue(Commands.run(superstructure::ejectAlgae, superstructure));
+    operator.leftBumper().onTrue(Commands.run(superstructure::ejectCoral, superstructure));
+    operator.leftTrigger().onTrue(Commands.run(superstructure::ejectAlgae, superstructure));
+
+    operator.a().onTrue(Commands.run(superstructure::ELEVATOR_TO_ALGAE_L2_INTAKE, superstructure));
+    operator.x().onTrue(Commands.run(superstructure::ELEVATOR_TO_ALGAE_L3_INTAKE, superstructure));
+    operator.y().onTrue(Commands.run(superstructure::ELEVATOR_TO_NET, superstructure));
+    operator.b().onTrue(Commands.run(superstructure::ELEVATOR_TO_STOW, superstructure));
+
+    operator.povDown().onTrue(superstructure.homeElevator());
 
     // // Elevator
-    operator.a().onTrue(Commands.runOnce(superstructure::sendElevatorHome, superstructure));
-    operator.y().onTrue(Commands.runOnce(superstructure::sendElevatorToPercent, superstructure));
-    operator.x().onTrue(superstructure.homeElevator());
+    // operator.a().onTrue(Commands.runOnce(superstructure::sendElevatorHome, superstructure));
+    // operator.y().onTrue(Commands.runOnce(superstructure::sendElevatorToPercent, superstructure));
+    // operator.x().onTrue(superstructure.homeElevator());
     // operator.b().onTrue(superstructure.homeExtender());
 
     // Extender
-    operator
-        .leftBumper()
-        .onTrue(Commands.runOnce(superstructure::sendExtenderHome, superstructure));
-    operator
-        .rightBumper()
-        .onTrue(Commands.runOnce(superstructure::sendExtenderToHor, superstructure));
+    // operator
+    //     .leftBumper()
+    //     .onTrue(Commands.runOnce(superstructure::sendExtenderHome, superstructure));
+    // operator
+    //     .rightBumper()
+    //     .onTrue(Commands.runOnce(superstructure::sendExtenderToHor, superstructure));
 
     // Beak
     // operator.y().onTrue(Commands.runOnce(superstructure::sendBeakHome, superstructure));

@@ -274,9 +274,10 @@ public class Beak {
     if (!isEStopped) {
       switch (rollerGoal) {
         case IDLE -> {
-          rollerIO.stop();
           if (shouldManipulateCoral && !hasCoral) {
             setRollerGoal(RollerGoal.GRIP);
+          } else {
+            rollerIO.stop();
           }
         }
         case GRIP -> {
@@ -293,7 +294,6 @@ public class Beak {
         case EJECT -> {
           if (hasCoral) {
             rollerIO.runVolts(rollerEjectVolts.get());
-            ejectTimer.start();
           } else {
             rollerIO.runVolts(rollerEjectVolts.get());
             if (ejectTimer.hasElapsed(ejectTime.get())) {
