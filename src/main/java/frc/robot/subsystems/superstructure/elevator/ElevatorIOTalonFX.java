@@ -27,7 +27,7 @@ import frc.robot.util.PhoenixUtil;
 public class ElevatorIOTalonFX implements ElevatorIO {
 
   // Reduction
-  public static final double reduction = 1.0;
+  // public static final double reduction = 1.0;
 
   // Motor Controllers
   private final TalonFX leader;
@@ -63,18 +63,26 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   public ElevatorIOTalonFX() {
 
     // Hardware
-    leader = new TalonFX(ElevatorConstants.LEADER_ID, ElevatorConstants.CANBUS);
-    follower = new TalonFX(ElevatorConstants.FOLLOWER_ID, ElevatorConstants.CANBUS);
+    leader = new TalonFX(14, "rio");
+    follower = new TalonFX(5, "rio");
     follower.setControl(new Follower(leader.getDeviceID(), false));
 
-    // encoder = new CANcoder(ElevatorConstants.CANCODER_ID, ElevatorConstants.CANBUS);
+    // encoder = new CANcoder(31, "rio");
 
     // Configure Encoder
+    // canConfig.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(1));
+    // canConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
+    // canConfig.MagnetSensor.withMagnetOffset(Rotations.of(-0.355));
+    // encoder.getConfigurator().apply(canConfig);
 
     // Configure motor
+    // config.Feedback.FeedbackRemoteSensorID = encoder.getDeviceID();
+    // config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+    // config.Feedback.SensorToMechanismRatio = (5.0 * 4.0);
+    // config.Feedback.RotorToSensorRatio = (5.0 * 5.0);
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     config.Slot0 = new Slot0Configs().withKP(0.0).withKI(0.0).withKD(0.0);
-    config.Feedback.SensorToMechanismRatio = 25;
+    config.Feedback.SensorToMechanismRatio = (5.0 * 5.0);
     config.TorqueCurrent.PeakForwardTorqueCurrent = 80.0;
     config.TorqueCurrent.PeakReverseTorqueCurrent = -80.0;
     config.CurrentLimits.StatorCurrentLimit = 80.0;
@@ -181,7 +189,11 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   @Override
   public void setBrakeMode(boolean enabled) {
     new Thread(
-            () -> leader.setNeutralMode(enabled ? NeutralModeValue.Brake : NeutralModeValue.Coast))
+            () -> {
+              config.MotorOutput.NeutralMode =
+                  enabled ? NeutralModeValue.Brake : NeutralModeValue.Coast;
+              tryUntilOk(5, () -> leader.getConfigurator().apply(config));
+            })
         .start();
   }
 }

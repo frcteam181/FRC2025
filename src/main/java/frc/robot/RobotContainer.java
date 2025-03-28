@@ -15,9 +15,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.commands.ClimberCommands;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.SuperstructureCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.climber.Climber;
+import frc.robot.subsystems.climber.ClimberIO;
+import frc.robot.subsystems.climber.ClimberIOTalonFX;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -27,7 +31,7 @@ import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.rollers.RollerSystemIOMinion;
 import frc.robot.subsystems.superstructure.Superstructure;
 import frc.robot.subsystems.superstructure.beak.Beak;
-import frc.robot.subsystems.superstructure.beak.BeakIOMinion;
+import frc.robot.subsystems.superstructure.beak.BeakIOTalonFX;
 import frc.robot.subsystems.superstructure.elevator.Elevator;
 import frc.robot.subsystems.superstructure.elevator.ElevatorIO;
 import frc.robot.subsystems.superstructure.elevator.ElevatorIOTalonFX;
@@ -43,17 +47,21 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  */
 public class RobotContainer {
   // Subsystems
-  private final Drive drive;
+  private Drive drive;
+  private Climber climber;
   private final Superstructure superstructure;
 
   // Controller
   private final CommandXboxController driver = new CommandXboxController(0);
   private final CommandXboxController operator = new CommandXboxController(1);
+  private final CommandXboxController dev = new CommandXboxController(5);
 
   private final Alert driverDisconnected =
       new Alert("Driver controller disconnected (port 0).", AlertType.kWarning);
   private final Alert operatorDisconnected =
       new Alert("Operator controller disconnected (port 1).", AlertType.kWarning);
+  private final Alert devDisconnected =
+      new Alert("Developer controller disconnected (port 5).", AlertType.kWarning);
   // private final LoggedNetworkNumber endgameAlert1 =
   //     new LoggedNetworkNumber("/SmartDashboard/Endgame Alert #1", 30.0);
   // private final LoggedNetworkNumber endgameAlert2 =
@@ -84,7 +92,8 @@ public class RobotContainer {
                 new ExtenderIOTalonFX(),
                 new RollerSystemIOMinion(16, "rio", 40, false, true, (5.0 * 5.0)));
         beak =
-            new Beak(new BeakIOMinion(), new RollerSystemIOMinion(15, "rio", 40, false, true, 1));
+            new Beak(new BeakIOTalonFX(), new RollerSystemIOMinion(15, "rio", 40, false, true, 1));
+        climber = new Climber(new ClimberIOTalonFX() {});
         break;
 
       case SIM:
@@ -111,6 +120,10 @@ public class RobotContainer {
     }
     if (elevator == null) {
       elevator = new Elevator(new ElevatorIO() {});
+    }
+
+    if (climber == null) {
+      climber = new Climber(new ClimberIO() {});
     }
 
     superstructure = new Superstructure(elevator, extender, beak);
@@ -173,6 +186,11 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
+    climber.setDefaultCommand(ClimberCommands.runWithJoystick(climber, () -> -dev.getRightX()));
+
+    // driver.povLeft().onTrue(Commands.runOnce(() -> climber.adjustClimbOffset(-5)));
+    // driver.povRight().onTrue(Commands.runOnce(() -> climber.adjustClimbOffset(5)));
+
     superstructure.setDefaultCommand(
         SuperstructureCommands.joystickMoveAll(
             superstructure,
@@ -181,8 +199,6 @@ public class RobotContainer {
             () -> -operator.getLeftX()));
 
     // Operator controls
-
-    // Game piece manipulation
     operator
         .rightBumper()
         .whileTrue(Commands.run(superstructure::startManipulatingGamePieces, superstructure))
@@ -198,23 +214,35 @@ public class RobotContainer {
 
     operator.povDown().onTrue(superstructure.homeElevator());
 
-    // // Elevator
-    // operator.a().onTrue(Commands.runOnce(superstructure::sendElevatorHome, superstructure));
-    // operator.y().onTrue(Commands.runOnce(superstructure::sendElevatorToPercent, superstructure));
-    // operator.x().onTrue(superstructure.homeElevator());
-    // operator.b().onTrue(superstructure.homeExtender());
+    // Dev controls
+
+    // superstructure.setDefaultCommand(
+    //     SuperstructureCommands.joystickMoveAll(
+    //         superstructure,
+    //         () -> -dev.getRightY(),
+    //         () -> -dev.getLeftY(),
+    //         () -> -dev.getLeftX()));
+
+    dev.y().onTrue(Commands.runOnce(superstructure::switchElevatorBreakOverride, superstructure));
+    dev.x()
+        .onTrue(Commands.runOnce(superstructure::switchExtenderPivotBreakOverride, superstructure));
+    dev.b().onTrue(Commands.runOnce(superstructure::switchBeakPivotBreakOverride, superstructure));
+
+    // Elevator
+    // dev.a().onTrue(Commands.runOnce(superstructure::ELEVATOR_TO_STOW, superstructure));
+    // dev.y().onTrue(Commands.runOnce(superstructure::ELEVATOR_TO_ALGAE_L3_INTAKE,
+    // superstructure));
+    // dev.povDown().onTrue(superstructure.homeElevator());
 
     // Extender
-    // operator
-    //     .leftBumper()
-    //     .onTrue(Commands.runOnce(superstructure::sendExtenderHome, superstructure));
-    // operator
-    //     .rightBumper()
-    //     .onTrue(Commands.runOnce(superstructure::sendExtenderToHor, superstructure));
+    // dev.leftBumper().onTrue(Commands.runOnce(superstructure::sendExtenderHome, superstructure));
+    // dev.rightBumper().onTrue(Commands.runOnce(superstructure::sendExtenderToHor,
+    // superstructure));
 
     // Beak
-    // operator.y().onTrue(Commands.runOnce(superstructure::sendBeakHome, superstructure));
-    // operator.b().onTrue(Commands.runOnce(superstructure::sendBeakToMax, superstructure));
+    // dev.y().onTrue(Commands.runOnce(superstructure::sendBeakHome, superstructure));
+    // dev.b().onTrue(Commands.runOnce(superstructure::sendBeakToMax, superstructure));
+
   }
 
   // Creates controller rumble command
@@ -239,6 +267,10 @@ public class RobotContainer {
     // Controller disconnected alerts
     driverDisconnected.set(!DriverStation.isJoystickConnected(driver.getHID().getPort()));
     operatorDisconnected.set(!DriverStation.isJoystickConnected(operator.getHID().getPort()));
+
+    if (Constants.tuningMode) {
+      devDisconnected.set(!DriverStation.isJoystickConnected(dev.getHID().getPort()));
+    }
   }
 
   /**

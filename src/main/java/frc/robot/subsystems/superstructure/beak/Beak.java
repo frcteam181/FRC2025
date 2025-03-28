@@ -400,6 +400,10 @@ public class Beak {
     beakIO.setBrakeMode(enabled);
   }
 
+  public boolean isPivotBrakeEnabled() {
+    return pivotBrakeModeEnabled;
+  }
+
   private void setRollerBrakeMode(boolean enabled) {
     if (rollerBrakeModeEnabled == enabled) return;
     rollerBrakeModeEnabled = enabled;

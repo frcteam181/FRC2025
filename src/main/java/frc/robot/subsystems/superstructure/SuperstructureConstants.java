@@ -7,34 +7,27 @@ public class SuperstructureConstants {
 
     public static final int LEADER_ID = 14;
     public static final int FOLLOWER_ID = 5;
-    public static final int CANCODER_ID = 0;
+    public static final int CANCODER_ID = 31;
     public static final String CANBUS = "rio";
 
-    public static final double maxTravel = 1.6; // meters
-    /*Robot on the floor
-     * Wired up
-     * Open advantage scope to elevator
-     * disable brake mode on elevator
-     * move all the way up
-     * record max height
-     */
+    public static final double maxTravel = 1.45; // meters (COMP 1.6)
+  }
 
-    /*
-    * Robot on floor next to reef
-      disable brake mode on elevator and on extender
-      manually move robot to correct height and extention
-      record values into superstructure pose
-    */
+  // Extender
+  public static class ExtenderConstants {
 
-    /*
-     * Tune rollers more
-     */
+    public static final int PIVOT_ID = 4;
+    public static final int CANCODER_ID = 29;
+    public static final int GRIPPER_ID = 16;
+    public static final String CANBUS = "rio";
+  }
 
-    /*
-    * Need to test driver station
-    make sure we have correct version
-    */
+  // Beak
+  public static class BeakConstants {
 
-    /* Try to fix beak pivot */
+    public static final int PIVOT_ID = 3;
+    public static final int ROLLER_ID = 15;
+    public static final int CANCODER_ID = 30;
+    public static final String CANBUS = "rio";
   }
 }

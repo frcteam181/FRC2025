@@ -9,8 +9,8 @@ import lombok.Getter;
 public enum SuperstructurePose {
   START(
       0.0,
-      Rotation2d.fromDegrees(67.0),
-      Rotation2d.fromDegrees(67.0),
+      Rotation2d.fromDegrees(67.0), // 67.0
+      Rotation2d.fromDegrees(67.0), // 67.0
       Rotation2d.kZero,
       Rotation2d.kZero),
   AUTO_START(

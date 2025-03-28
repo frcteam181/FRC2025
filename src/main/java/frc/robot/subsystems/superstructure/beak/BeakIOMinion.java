@@ -11,15 +11,14 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.TalonFXSConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.hardware.TalonFXS;
-import com.ctre.phoenix6.signals.ExternalFeedbackSensorSourceValue;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.MotorArrangementValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.math.filter.Debouncer;
@@ -33,11 +32,13 @@ import frc.robot.util.PhoenixUtil;
 
 public class BeakIOMinion implements BeakIO {
 
-  private final TalonFXS motor;
+  // private final TalonFXS motor;
+  private final TalonFX motor;
   private final CANcoder encoder;
 
   // Config
-  private final TalonFXSConfiguration config = new TalonFXSConfiguration();
+  // private final TalonFXSConfiguration config = new TalonFXSConfiguration();
+  private final TalonFXConfiguration config = new TalonFXConfiguration();
   private final CANcoderConfiguration canConfig = new CANcoderConfiguration();
 
   // Status Signals
@@ -58,24 +59,29 @@ public class BeakIOMinion implements BeakIO {
   private final Debouncer motorConnectedDebouncer = new Debouncer(0.5);
 
   public BeakIOMinion() {
-    motor = new TalonFXS(3, "rio");
+    // motor = new TalonFXS(3, "rio");
+    motor = new TalonFX(3, "rio");
     encoder = new CANcoder(30, "rio");
 
     // Configure CANCoder
     canConfig.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.3));
     canConfig.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
-    canConfig.MagnetSensor.withMagnetOffset(Rotations.of(-0.111));
+    canConfig.MagnetSensor.withMagnetOffset(Rotations.of(-0.1075));
     encoder.getConfigurator().apply(canConfig);
 
     // Configure motor
-    config.Commutation.MotorArrangement = MotorArrangementValue.Minion_JST;
-    config.ExternalFeedback.FeedbackRemoteSensorID = encoder.getDeviceID();
-    config.ExternalFeedback.ExternalFeedbackSensorSource =
-        ExternalFeedbackSensorSourceValue.FusedCANcoder;
+    // config.Commutation.MotorArrangement = MotorArrangementValue.Minion_JST;
+    // config.ExternalFeedback.FeedbackRemoteSensorID = encoder.getDeviceID();
+    // config.ExternalFeedback.ExternalFeedbackSensorSource =
+    //     ExternalFeedbackSensorSourceValue.FusedCANcoder;
+    config.Feedback.FeedbackRemoteSensorID = encoder.getDeviceID();
+    config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+    config.Feedback.SensorToMechanismRatio = 1.0;
+    config.Feedback.RotorToSensorRatio = 5.0;
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     config.Slot0 = new Slot0Configs().withKP(0.0).withKI(0.0).withKD(0.0);
-    config.ExternalFeedback.SensorToMechanismRatio = 1.0;
-    config.ExternalFeedback.RotorToSensorRatio = 5.0;
+    // config.ExternalFeedback.SensorToMechanismRatio = 1.0;
+    // config.ExternalFeedback.RotorToSensorRatio = 5.0;
     config.CurrentLimits.SupplyCurrentLimit = 50;
     config.CurrentLimits.StatorCurrentLimitEnable = true;
     config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;

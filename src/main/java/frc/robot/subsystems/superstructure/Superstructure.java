@@ -73,6 +73,7 @@ public class Superstructure extends SubsystemBase {
       }
       calculateElevator();
       calculateExtender();
+      // calculateBeak();
     }
     // calculateState();
   }
@@ -86,6 +87,14 @@ public class Superstructure extends SubsystemBase {
     return elevator.homingSequence();
   }
 
+  public void switchElevatorBreakOverride() {
+    if (elevator.isBrakeEnabled()) {
+      elevator.setOverrides(() -> true, () -> false);
+    } else {
+      elevator.setOverrides(() -> false, () -> false);
+    }
+  }
+
   // Extender Methods
   public void sendExtenderHome() {
     extender.setPivotGoal(() -> Rotation2d.fromDegrees(90.0));
@@ -95,9 +104,13 @@ public class Superstructure extends SubsystemBase {
     extender.setPivotGoal(() -> Rotation2d.fromDegrees(0.0));
   }
 
-  public Command homeExtender() {
-    return extender.homingSequence();
+  public void runExtenderOpenLoopVolt(double volt) {
+    extender.runPivotVolts(volt);
   }
+
+  // public Command homeExtender() {
+  //   return extender.homingSequence();
+  // }
 
   public void startManipulatingAlgae() {
     extender.setShouldManipulateAlgae(true);
@@ -110,6 +123,14 @@ public class Superstructure extends SubsystemBase {
   public void ejectAlgae() {
     extender.startEjectTimer(); // -----------------------------------
     extender.setGripperGoal(GripperGoal.EJECT); // Swapped the order of these two lines
+  }
+
+  public void switchExtenderPivotBreakOverride() {
+    if (extender.isPivotBrakeEnabled()) {
+      extender.setOverrides(() -> true, () -> false, () -> false);
+    } else {
+      extender.setOverrides(() -> false, () -> false, () -> false);
+    }
   }
   // public void ejectAlgae() {
   //   extender.setGripperGoal(state == SuperstructureState.NET ? GripperGoal.NET_EJECT :
@@ -141,6 +162,14 @@ public class Superstructure extends SubsystemBase {
   public void runBeakPivotOpenLoop(double output) {
     beak.runPivotOpenLoop(output);
   }
+
+  public void switchBeakPivotBreakOverride() {
+    if (beak.isPivotBrakeEnabled()) {
+      beak.setOverrides(() -> true, () -> false, () -> false);
+    } else {
+      beak.setOverrides(() -> false, () -> false, () -> false);
+    }
+  }
   // public void ejectCoral() {
   //   beak.setRollerGoal(state == SuperstructureState.L1_CORAL ? RollerGoal.L1_EJECT :
   // RollerGoal.EJECT);
@@ -159,22 +188,6 @@ public class Superstructure extends SubsystemBase {
     setShouldExtend(false);
   }
 
-  // public void ELEVATOR_TO_STOW() {
-  //   setGoal(SuperstructureState.STOW);
-  // }
-
-  // public void ELEVATOR_TO_ALGAE_L2_INTAKE() {
-  //   setGoal(SuperstructureState.ALGAE_L2_INTAKE);
-  // }
-
-  // public void ELEVATOR_TO_ALGAE_L3_INTAKE() {
-  //   setGoal(SuperstructureState.ALGAE_L3_INTAKE);
-  // }
-
-  // public void ELEVATOR_TO_NET() {
-  //   setGoal(SuperstructureState.NET);
-  // }
-
   public void ELEVATOR_TO_STOW() {
     setPose(SuperstructurePose.STOW);
   }
@@ -189,150 +202,6 @@ public class Superstructure extends SubsystemBase {
 
   public void ELEVATOR_TO_NET() {
     setPose(SuperstructurePose.NET);
-  }
-
-  public void calculateState() {
-    if (pose != previousPose || currentPose == SuperstructurePose.START) {
-      switch (pose) {
-          /* ----------------------------------------START---------------------------------------- */
-        case START:
-          if (!elevator.isHomed()) {
-            elevator.homingSequence();
-          } else {
-            setPose(SuperstructurePose.STOW);
-          }
-          break;
-          /* -------------------------------------AUTO_START---------------------------------------- */
-        case AUTO_START:
-          break;
-          /* -------------------------------------STOW---------------------------------------- */
-        case STOW:
-          // if (elevator.)
-          elevator.setGoal(() -> STOW.getHEIGHT());
-          // beak.setGoal(
-          //     () -> STOW.getBeakAngle()); // Change this so beak has the stowed angle and the
-          // extended
-          // // angle
-          // if (shouldExtend) {
-          //   extender.setPivotGoal(() -> STOW.getEXT_ANGLE());
-          // }
-          break;
-          /* -------------------------------------L1 CORAL---------------------------------------- */
-        case L1_CORAL:
-          elevator.setGoal(() -> L1_CORAL.getHEIGHT());
-          // beak.setGoal(() -> L1_CORAL.getBeakAngle());
-          // if (shouldExtend) {
-          //   extender.setPivotGoal(() -> L1_CORAL.getEXT_ANGLE());
-          //   break;
-          // }
-          // extender.setPivotGoal(() -> STOW.getEXT_ANGLE());
-          break;
-          /* -------------------------------------L2 CORAL---------------------------------------- */
-        case L2_CORAL:
-          elevator.setGoal(() -> L2_CORAL.getHEIGHT());
-          // beak.setGoal(() -> L2_CORAL.getBeakAngle());
-          // if (shouldExtend) {
-          //   extender.setPivotGoal(() -> L2_CORAL.getEXT_ANGLE());
-          //   break;
-          // }
-          // extender.setPivotGoal(() -> STOW.getEXT_ANGLE());
-          break;
-          /* -------------------------------------L3 CORAL---------------------------------------- */
-        case L3_CORAL:
-          elevator.setGoal(() -> L3_CORAL.getHEIGHT());
-          // beak.setGoal(() -> L3_CORAL.getBeakAngle());
-          // if (shouldExtend) {
-          //   extender.setPivotGoal(() -> L3_CORAL.getEXT_ANGLE());
-          //   break;
-          // }
-          // extender.setPivotGoal(() -> STOW.getEXT_ANGLE());
-          break;
-          /* -------------------------------------L4 CORAL---------------------------------------- */
-        case L4_CORAL:
-          elevator.setGoal(() -> L4_CORAL.getHEIGHT());
-          // beak.setGoal(() -> L4_CORAL.getBeakAngle());
-          // if (shouldExtend) {
-          //   extender.setPivotGoal(() -> L4_CORAL.getEXT_ANGLE());
-          //   break;
-          // }
-          // extender.setPivotGoal(() -> STOW.getEXT_ANGLE());
-          break;
-          /* -------------------------------------L1 CORAL EJECT---------------------------------------- */
-        case L1_CORAL_EJECT:
-          elevator.setGoal(() -> L1_CORAL.getHEIGHT());
-          // beak.setGoal(() -> L1_CORAL.getBeakAngle());
-          // if (shouldExtend) {
-          //   extender.setPivotGoal(() -> L1_CORAL.getEXT_ANGLE());
-          //   break;
-          // }
-          // extender.setPivotGoal(() -> STOW.getEXT_ANGLE());
-          break;
-          /* -------------------------------------L2 CORAL EJECT---------------------------------------- */
-        case L2_CORAL_EJECT:
-          elevator.setGoal(() -> L2_CORAL.getHEIGHT());
-          // beak.setGoal(() -> L2_CORAL.getBeakAngle());
-          // if (shouldExtend) {
-          //   extender.setPivotGoal(() -> L2_CORAL.getEXT_ANGLE());
-          //   break;
-          // }
-          // extender.setPivotGoal(() -> STOW.getEXT_ANGLE());
-          break;
-          /* -------------------------------------L3 CORAL EJECT---------------------------------------- */
-        case L3_CORAL_EJECT:
-          elevator.setGoal(() -> L3_CORAL.getHEIGHT());
-          // beak.setGoal(() -> L3_CORAL.getBeakAngle());
-          // if (shouldExtend) {
-          //   extender.setPivotGoal(() -> L3_CORAL.getEXT_ANGLE());
-          //   break;
-          // }
-          // extender.setPivotGoal(() -> STOW.getEXT_ANGLE());
-          break;
-          /* -------------------------------------L4 CORAL EJECT---------------------------------------- */
-        case L4_CORAL_EJECT:
-          elevator.setGoal(() -> L4_CORAL.getHEIGHT());
-          // beak.setGoal(() -> L4_CORAL.getBeakAngle());
-          // if (shouldExtend) {
-          //   extender.setPivotGoal(() -> L4_CORAL.getEXT_ANGLE());
-          //   break;
-          // }
-          // extender.setPivotGoal(() -> STOW.getEXT_ANGLE());
-          break;
-          /* -------------------------------------ALGAE FLOOR INTAKE---------------------------------------- */
-        case ALGAE_L2_INTAKE:
-          elevator.setGoal(() -> ALGAE_L2_INTAKE.getHEIGHT());
-          // beak.setGoal(() -> ALGAE_L2_INTAKE.getBeakAngle());
-          // if (shouldExtend) {
-          //   extender.setPivotGoal(() -> ALGAE_L2_INTAKE.getEXT_ANGLE());
-          //   break;
-          // }
-          // extender.setPivotGoal(() -> STOW.getEXT_ANGLE());
-          break;
-          /* -------------------------------------ALGAE L2 INTAKE---------------------------------------- */
-        case ALGAE_L3_INTAKE:
-          elevator.setGoal(() -> ALGAE_L3_INTAKE.getHEIGHT());
-          // beak.setGoal(() -> ALGAE_L3_INTAKE.getBeakAngle());
-          // if (shouldExtend) {
-          //   extender.setPivotGoal(() -> ALGAE_L3_INTAKE.getEXT_ANGLE());
-          //   break;
-          // }
-          // extender.setPivotGoal(() -> STOW.getEXT_ANGLE());
-          break;
-          /* -------------------------------------NET---------------------------------------- */
-        case NET:
-          elevator.setGoal(() -> NET.getHEIGHT());
-          // beak.setGoal(() -> NET.getBeakAngle());
-          // if (shouldExtend) {
-          //   extender.setPivotGoal(() -> NET.getEXT_ANGLE());
-          //   break;
-          // }
-          // extender.setPivotGoal(() -> STOW.getEXT_ANGLE());
-          break;
-
-        default:
-          break;
-      }
-      previousPose = pose;
-    }
   }
 
   public void calculateElevator() {
@@ -352,11 +221,13 @@ public class Superstructure extends SubsystemBase {
     }
   }
 
-  public void calculateBeakAngle() {
+  public void calculateBeak() {
     if (isExtending && !beakOut) {
       beak.setGoal(() -> getPose().getBEAK_OUT_ANGLE());
+      beakOut = true;
     } else if (beakOut && !isExtending) {
       beak.setGoal(() -> SuperstructurePose.STOW.getBEAK_STOW_ANGLE());
+      beakOut = false;
     }
   }
 }

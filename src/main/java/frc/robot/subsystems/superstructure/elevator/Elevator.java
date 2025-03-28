@@ -96,8 +96,8 @@ public class Elevator {
   static {
     switch (Constants.getRobot()) {
       case COMPBOT, DEVBOT -> {
-        kP.initDefault(300);
-        kD.initDefault(22);
+        kP.initDefault(0); // 300
+        kD.initDefault(0); // 22
         kS.initDefault(0);
         kG.initDefault(0);
         kA.initDefault(0);
@@ -141,6 +141,9 @@ public class Elevator {
               new TrapezoidProfile.Constraints(
                   maxVelocityMeterPerSec.get(), maxAccelerationMeterPerSec2.get()));
     }
+
+    // Set coast mode
+    setBrakeMode(!coastOverride.getAsBoolean());
 
     // Run Profile
     final boolean shouldRunProfile =
@@ -240,10 +243,13 @@ public class Elevator {
     this.disabledOverride = disabledOverride;
   }
 
+  public boolean isBrakeEnabled() {
+    return brakeModeEnabled;
+  }
+
   private void setBrakeMode(boolean enabled) {
-    if (brakeModeEnabled == enabled) {
-      return;
-    }
+    if (brakeModeEnabled == enabled) return;
+    System.out.println("Setting brake mode from " + brakeModeEnabled + " to " + enabled);
     brakeModeEnabled = enabled;
     elevatorIO.setBrakeMode(brakeModeEnabled);
   }

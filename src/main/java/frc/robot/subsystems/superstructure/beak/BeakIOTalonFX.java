@@ -1,4 +1,4 @@
-package frc.robot.subsystems.superstructure.extender;
+package frc.robot.subsystems.superstructure.beak;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Celsius;
@@ -30,17 +30,17 @@ import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.util.PhoenixUtil;
 
-public class ExtenderIOTalonFX implements ExtenderIO {
+public class BeakIOTalonFX implements BeakIO {
 
-  // Hardware
-  private final TalonFX talon;
+  // private final TalonFXS motor;
+  private final TalonFX motor;
   private final CANcoder encoder;
 
   // Config
   private final TalonFXConfiguration config = new TalonFXConfiguration();
   private final CANcoderConfiguration canConfig = new CANcoderConfiguration();
 
-  // Status Signals Talon Pivot
+  // Status Signals
   private final StatusSignal<Angle> pivotPosition;
   private final StatusSignal<AngularVelocity> pivotVelocity;
   private final StatusSignal<Voltage> pivotAppliedVolts;
@@ -49,48 +49,45 @@ public class ExtenderIOTalonFX implements ExtenderIO {
   private final StatusSignal<Temperature> pivotTemp;
 
   // Cotrol Requests
-  private final TorqueCurrentFOC motorTorqueCurrentFOC =
-      new TorqueCurrentFOC(0.0).withUpdateFreqHz(0.0);
-  private final PositionTorqueCurrentFOC motorPositionTorqueCurrentFOC =
+  private final TorqueCurrentFOC torqueCurrentFOC = new TorqueCurrentFOC(0.0).withUpdateFreqHz(0.0);
+  private final PositionTorqueCurrentFOC positionTorqueCurrentFOC =
       new PositionTorqueCurrentFOC(0.0).withUpdateFreqHz(0.0);
-  private final VoltageOut motorVoltageRequest = new VoltageOut(0.0).withUpdateFreqHz(0.0);
+  private final VoltageOut voltageRequest = new VoltageOut(0.0).withUpdateFreqHz(0.0);
 
-  // Connected debouncers
+  // Connection debouncers
   private final Debouncer motorConnectedDebouncer = new Debouncer(0.5);
 
-  public ExtenderIOTalonFX() {
-    talon = new TalonFX(4, "rio");
-    encoder = new CANcoder(29, "rio");
+  public BeakIOTalonFX() {
+    // motor = new TalonFXS(3, "rio");
+    motor = new TalonFX(3, "rio");
+    encoder = new CANcoder(30, "rio");
 
     // Configure CANCoder
-    canConfig.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.6));
-    canConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-    canConfig.MagnetSensor.withMagnetOffset(Rotations.of(-0.258));
+    canConfig.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.3));
+    canConfig.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
+    canConfig.MagnetSensor.withMagnetOffset(Rotations.of(-0.1075));
     encoder.getConfigurator().apply(canConfig);
 
     // Configure motor
     config.Feedback.FeedbackRemoteSensorID = encoder.getDeviceID();
     config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
     config.Feedback.SensorToMechanismRatio = 1.0;
-    config.Feedback.RotorToSensorRatio = (5.0 * 5.0 * 3.0) * (46.0 / 10.0);
+    config.Feedback.RotorToSensorRatio = 5.0;
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     config.Slot0 = new Slot0Configs().withKP(0.0).withKI(0.0).withKD(0.0);
-    config.TorqueCurrent.PeakForwardTorqueCurrent = 40;
-    config.TorqueCurrent.PeakReverseTorqueCurrent = -40;
-    config.CurrentLimits.StatorCurrentLimit = 40;
+    config.CurrentLimits.SupplyCurrentLimit = 50;
     config.CurrentLimits.StatorCurrentLimitEnable = true;
     config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    motor.getConfigurator().apply(config);
+    tryUntilOk(5, () -> motor.getConfigurator().apply(config, 0.25));
 
-    talon.getConfigurator().apply(config);
-    tryUntilOk(5, () -> talon.getConfigurator().apply(config, 0.25));
-
-    // Get and set motor status signals
-    pivotPosition = talon.getPosition();
-    pivotVelocity = talon.getVelocity();
-    pivotAppliedVolts = talon.getMotorVoltage();
-    pivotSupplyCurrentAmps = talon.getSupplyCurrent();
-    pivotTorqueCurrentAmps = talon.getTorqueCurrent();
-    pivotTemp = talon.getDeviceTemp();
+    // Get and set status signals
+    pivotPosition = motor.getPosition();
+    pivotVelocity = motor.getVelocity();
+    pivotAppliedVolts = motor.getMotorVoltage();
+    pivotSupplyCurrentAmps = motor.getSupplyCurrent();
+    pivotTorqueCurrentAmps = motor.getTorqueCurrent();
+    pivotTemp = motor.getDeviceTemp();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0,
@@ -100,7 +97,7 @@ public class ExtenderIOTalonFX implements ExtenderIO {
         pivotSupplyCurrentAmps,
         pivotTorqueCurrentAmps,
         pivotTemp);
-    talon.optimizeBusUtilization();
+    motor.optimizeBusUtilization();
 
     // Register signals for refresh
     PhoenixUtil.registerSignals(
@@ -114,9 +111,9 @@ public class ExtenderIOTalonFX implements ExtenderIO {
   }
 
   @Override
-  public void updateInputs(ExtenderIOInputs inputs) {
+  public void updateInputs(PivotIOInputs inputs) {
     inputs.data =
-        new ExtenderIOData(
+        new PivotIOData(
             motorConnectedDebouncer.calculate(
                 BaseStatusSignal.isAllGood(
                     pivotPosition,
@@ -133,26 +130,25 @@ public class ExtenderIOTalonFX implements ExtenderIO {
             pivotTemp.getValue().in(Celsius));
   }
 
-  // Default pivot methods
   @Override
   public void runOpenLoop(double output) {
-    talon.setControl(motorTorqueCurrentFOC.withOutput(output));
+    motor.setControl(torqueCurrentFOC.withOutput(output));
   }
 
   @Override
   public void runVolts(double volts) {
-    talon.setControl(motorVoltageRequest.withOutput(volts));
+    motor.setControl(voltageRequest.withOutput(volts));
   }
 
   @Override
   public void stop() {
-    talon.stopMotor();
+    motor.stopMotor();
   }
 
   @Override
   public void runPosition(Rotation2d position, double feedforward) {
-    talon.setControl(
-        motorPositionTorqueCurrentFOC
+    motor.setControl(
+        positionTorqueCurrentFOC
             .withPosition(position.getRotations())
             .withFeedForward(feedforward));
   }
@@ -162,7 +158,7 @@ public class ExtenderIOTalonFX implements ExtenderIO {
     config.Slot0.kP = kP;
     config.Slot0.kI = kI;
     config.Slot0.kD = kD;
-    tryUntilOk(5, () -> talon.getConfigurator().apply(config));
+    tryUntilOk(5, () -> motor.getConfigurator().apply(config));
   }
 
   @Override
@@ -171,7 +167,7 @@ public class ExtenderIOTalonFX implements ExtenderIO {
             () -> {
               config.MotorOutput.NeutralMode =
                   enabled ? NeutralModeValue.Brake : NeutralModeValue.Coast;
-              tryUntilOk(5, () -> talon.getConfigurator().apply(config));
+              tryUntilOk(5, () -> motor.getConfigurator().apply(config));
             })
         .start();
   }

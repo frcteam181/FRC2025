@@ -86,10 +86,10 @@ public class Extender {
   static {
     switch (Constants.getRobot()) {
       case COMPBOT, DEVBOT -> {
-        kP.initDefault(900.0);
-        kD.initDefault(100.0);
-        kS.initDefault(7.0);
-        kG.initDefault(15.0);
+        kP.initDefault(0.0); // 900
+        kD.initDefault(0.0); // 100
+        kS.initDefault(0.0); // 7
+        kG.initDefault(0.0); // 15
       }
       case SIMBOT -> {
         kP.initDefault(4000);
@@ -127,7 +127,7 @@ public class Extender {
   private TrapezoidProfile pivotProfile;
   private TrapezoidProfile algaeProfile;
   @Getter private State pivotSetpoint = new State();
-  private DoubleSupplier pivotGoal = () -> 90.0;
+  private DoubleSupplier pivotGoal = () -> 67.0; // 90.0
   private boolean stopProfile = false;
   @Getter private boolean shouldEStop = false;
   @Getter private boolean isEStopped = false;
@@ -377,15 +377,6 @@ public class Extender {
     algaeDebouncer.calculate(false);
   }
 
-  public void setOverrides(
-      BooleanSupplier coastOverride,
-      BooleanSupplier disableOverride,
-      BooleanSupplier disableGamePieceDetectionOverride) {
-    this.coastOverride = coastOverride;
-    this.disableOverride = disableOverride;
-    this.disableGamePieceDetectionOverride = disableGamePieceDetectionOverride;
-  }
-
   public Command homingSequence() {
     return Commands.startRun(
             () -> {
@@ -417,10 +408,23 @@ public class Extender {
 
   // Default Pivot Methods
 
+  public void setOverrides(
+      BooleanSupplier coastOverride,
+      BooleanSupplier disableOverride,
+      BooleanSupplier disableGamePieceDetectionOverride) {
+    this.coastOverride = coastOverride;
+    this.disableOverride = disableOverride;
+    this.disableGamePieceDetectionOverride = disableGamePieceDetectionOverride;
+  }
+
   private void setPivotBrakeMode(boolean enabled) {
     if (pivotBrakeModeEnabled == enabled) return;
     pivotBrakeModeEnabled = enabled;
     extenderIO.setBrakeMode(enabled);
+  }
+
+  public boolean isPivotBrakeEnabled() {
+    return pivotBrakeModeEnabled;
   }
 
   public void runPivotVolts(double volt) {
